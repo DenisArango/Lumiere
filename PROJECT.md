@@ -156,10 +156,16 @@ La fundación (schema completo de BD, contratos de API, sistema de diseño) se c
 - [x] `$queryRaw` con template etiquetado (parametrizado, no SQL concatenado) para agregaciones que el query builder de Prisma no expresa bien
 - [x] Verificado con datos de prueba controlados y resultados numéricos exactos, no solo "el endpoint responde 200"
 
-**75/75 tests de integración pasan contra Postgres/Redis reales** (11 auth + 16 catálogo + 8 cines/salas + 7 funciones + 11 reservas + 7 promociones + 10 opiniones + 5 reportería). Probado manualmente contra el servidor real.
+**Fase 10 — Pagos** (cierra RF-07): construida y probada con gateway simulado ([docs/backend/09-pagos.md](docs/backend/09-pagos.md))
+- [x] Patrón Strategy (`PaymentGateway`) con implementaciones reales de Stripe y PayPal — verificadas contra los tipos reales de ambos SDKs (compilan y tipan correctamente)
+- [x] `payOrder`/`refundOrder`: máquina de estados completa probada con un gateway simulado inyectado en el registro real (`paymentGateways.STRIPE = mockGateway`), ejercitando la app real de punta a punta
+- [x] **Bug real encontrado y corregido**: reintento de pago tras un cobro rechazado violaba una constraint única (`Payment.orderId`) — corregido con `upsert`, capturado por un test de integración real, no por revisión de código
+- [ ] **Pendiente**: verificación end-to-end contra Stripe/PayPal sandbox reales — requiere credenciales del usuario (decisión tomada explícitamente: construir sin ellas ahora, verificar cuando existan)
+
+**83/83 tests de integración pasan contra Postgres/Redis reales** (11 auth + 16 catálogo + 8 cines/salas + 7 funciones + 11 reservas + 7 promociones + 10 opiniones + 5 reportería + 8 pagos). Probado manualmente contra el servidor real (arranca sin errores incluso sin credenciales de Stripe/PayPal configuradas).
 
 ### Los 8 requerimientos funcionales del enunciado (RF-01 a RF-08) están completos
 
-Solo falta **Pagos** para que RF-07 (venta en línea) quede 100% cerrado — el motor de reservas ya existe, falta el cobro real.
+RF-07 (venta en línea) queda 100% cerrado en cuanto a lógica de negocio — solo falta la verificación contra proveedores reales cuando el usuario tenga las credenciales.
 
-**Siguiente módulo**: Pagos (Stripe + PayPal) — **requiere que el usuario provea credenciales sandbox** (`STRIPE_SECRET_KEY`, `PAYPAL_CLIENT_ID`/`PAYPAL_CLIENT_SECRET`) para verificación end-to-end real; se puede construir y probar unitariamente sin ellas.
+**Siguiente paso**: Frontend (React + Vite + TypeScript) — todo el backend está construido, probado y documentado.

@@ -22,6 +22,7 @@ import { orderRouter, showtimeSeatRouter } from "@/modules/bookings/booking.rout
 import { promotionRouter } from "@/modules/promotions/promotion.routes";
 import { movieReviewRouter, reviewRouter } from "@/modules/reviews/review.routes";
 import { reportRouter } from "@/modules/reports/report.routes";
+import { paymentRouter } from "@/modules/payments/payment.routes";
 
 /**
  * Construye la app de Express sin arrancar el servidor (facilita testing
@@ -95,9 +96,7 @@ export function createApp(): Express {
   app.use("/api/v1/movies", movieReviewRouter);
   app.use("/api/v1/reviews", reviewRouter);
   app.use("/api/v1/reports", reportRouter);
-
-  // El unico modulo de dominio que falta (Pagos) se monta aqui cuando se
-  // construya (ver PROJECT.md seccion 6).
+  app.use("/api/v1/orders", paymentRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
