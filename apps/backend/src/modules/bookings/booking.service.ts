@@ -4,6 +4,7 @@ import { env } from "@/config/env";
 import { acquireSeatLock, releaseSeatLockKey } from "@/lib/seat-lock";
 import { emitSeatEvent } from "@/lib/socket-server";
 import { ConflictError, ForbiddenError, NotFoundError } from "@/utils/app-error";
+import { calculateDiscount, getApplicablePromotion } from "@/modules/promotions/promotion.service";
 import { paginate, toSkipTake, type PaginatedResult } from "@/utils/pagination";
 import type { CreateOrderInput } from "@/modules/bookings/booking.schema";
 import type { Pagination } from "@/utils/pagination";
@@ -155,6 +156,14 @@ export async function createOrder(userId: string, input: CreateOrderInput) {
 
   const subtotal = seatsSubtotal + itemsSubtotal;
 
+  let promotionId: string | undefined;
+  let discountAmount = 0;
+  if (input.promotionCode) {
+    const promotion = await getApplicablePromotion(input.promotionCode, input.showtimeId);
+    promotionId = promotion.id;
+    discountAmount = calculateDiscount(promotion, subtotal);
+  }
+
   const order = await prisma.$transaction(async (tx) => {
     const created = await tx.order.create({
       data: {
@@ -162,8 +171,9 @@ export async function createOrder(userId: string, input: CreateOrderInput) {
         showtimeId: input.showtimeId,
         status: "PENDING",
         subtotal,
-        discountAmount: 0,
-        totalAmount: subtotal,
+        discountAmount,
+        totalAmount: subtotal - discountAmount,
+        promotionId,
         seats: {
           create: seats.map((s) => ({
             showtimeSeatId: s.id,

@@ -19,6 +19,7 @@ import { roomRouter } from "@/modules/cinemas/room.routes";
 import { seatTypeRouter } from "@/modules/seat-types/seat-type.routes";
 import { showtimeRouter } from "@/modules/showtimes/showtime.routes";
 import { orderRouter, showtimeSeatRouter } from "@/modules/bookings/booking.routes";
+import { promotionRouter } from "@/modules/promotions/promotion.routes";
 
 /**
  * Construye la app de Express sin arrancar el servidor (facilita testing
@@ -88,10 +89,10 @@ export function createApp(): Express {
   app.use("/api/v1/showtimes", showtimeRouter);
   app.use("/api/v1/showtimes", showtimeSeatRouter);
   app.use("/api/v1/orders", orderRouter);
+  app.use("/api/v1/promotions", promotionRouter);
 
-  // El resto de routers de dominio (payments, promotions, reviews, reports)
-  // se montan aqui a medida que cada modulo se construye (ver PROJECT.md
-  // seccion 6).
+  // El resto de routers de dominio (payments, reviews, reports) se montan
+  // aqui a medida que cada modulo se construye (ver PROJECT.md seccion 6).
 
   app.use(notFoundHandler);
   app.use(errorHandler);

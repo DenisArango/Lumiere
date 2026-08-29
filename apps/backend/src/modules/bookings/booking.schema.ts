@@ -20,6 +20,7 @@ export const createOrderSchema = z.object({
       }),
     )
     .optional(),
+  promotionCode: z.string().trim().toUpperCase().min(1).optional(),
 });
 
 export const listOrdersQuerySchema = paginationSchema;

@@ -141,6 +141,11 @@ La fundación (schema completo de BD, contratos de API, sistema de diseño) se c
 - [x] Órdenes `PENDING` con combos, cancelación libera butacas, eventos Socket.io (`seat:locked`/`seat:released`) por función
 - [x] Barrido de bloqueos vencidos integrado también en las lecturas de disponibilidad de Funciones (fix retroactivo)
 
-**53/53 tests de integración pasan contra Postgres/Redis reales** (11 auth + 16 catálogo + 8 cines/salas + 7 funciones + 11 reservas). Probado manualmente contra el servidor real.
+**Fase 7 — Promociones** (RF-05): completa y verificada ([docs/backend/06-promociones.md](docs/backend/06-promociones.md))
+- [x] CRUD de promociones con reglas por película/cine/día de la semana (lógica OR, sin reglas = global)
+- [x] `/promotions/validate` para verificar un código antes de pagar
+- [x] **Integrado de vuelta al motor de reservas**: `createOrder` acepta `promotionCode` y aplica el descuento real — verificado end-to-end (20% sobre 200 = descuento de 40, total 160)
 
-**Siguiente módulo**: Pagos (Stripe + PayPal)
+**60/60 tests de integración pasan contra Postgres/Redis reales** (11 auth + 16 catálogo + 8 cines/salas + 7 funciones + 11 reservas + 7 promociones). Probado manualmente contra el servidor real.
+
+**Siguiente módulo**: Pagos (Stripe + PayPal) — **requiere que el usuario provea credenciales sandbox** (`STRIPE_SECRET_KEY`, `PAYPAL_CLIENT_ID`/`PAYPAL_CLIENT_SECRET`) para verificación end-to-end real; se puede construir y probar unitariamente sin ellas.
