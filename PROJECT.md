@@ -96,6 +96,7 @@ La fundación (schema completo de BD, contratos de API, sistema de diseño) se c
 - [docs/04-modelo-datos.md](docs/04-modelo-datos.md) — Diagrama ER y diccionario de datos
 - [docs/05-diagramas-uml.md](docs/05-diagramas-uml.md) — Casos de uso, clases, secuencia
 - [docs/06-seguridad.md](docs/06-seguridad.md) — Seguridad en las 3 capas
+- [docs/07-guia-presentacion.md](docs/07-guia-presentacion.md) — Preguntas esperadas en la presentación y cómo responderlas (incluye recomendaciones de dónde publicar esta documentación)
 - `docs/backend/<modulo>.md` — Documentación por módulo del backend (se crea al completar cada módulo)
 - `docs/frontend/<modulo>.md` — Documentación por módulo del frontend (se crea al completar cada módulo)
 
