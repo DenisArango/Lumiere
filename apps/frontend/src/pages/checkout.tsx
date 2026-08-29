@@ -1,13 +1,14 @@
 import { useRef, useState } from "react";
 import { useLocation, useNavigate, Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { CreditCard, Ticket } from "lucide-react";
+import { CreditCard, Minus, Plus, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useShowtime } from "@/features/showtimes/showtimes.hooks";
 import { useSeatMap, useReleaseSeats } from "@/features/bookings/bookings.hooks";
 import { createOrder, payOrder } from "@/features/bookings/bookings.api";
+import { useProducts } from "@/features/products/products.hooks";
 import { getApiErrorMessage } from "@/lib/api-client";
 import { useEffectOnUnmount } from "@/lib/use-effect-on-unmount";
 import { cn } from "@/lib/utils";
@@ -24,12 +25,18 @@ export function CheckoutPage() {
 
   const { data: showtime } = useShowtime(state?.showtimeId);
   const { data: seatMap } = useSeatMap(state?.showtimeId);
+  const { data: products } = useProducts();
   const releaseMutation = useReleaseSeats(state?.showtimeId ?? "");
 
   const [provider, setProvider] = useState<"STRIPE" | "PAYPAL">("STRIPE");
   const [promoCode, setPromoCode] = useState("");
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const orderCreatedRef = useRef(false);
+
+  function setQuantity(productId: string, next: number) {
+    setQuantities((prev) => ({ ...prev, [productId]: Math.max(0, next) }));
+  }
 
   useEffectOnUnmount(() => {
     if (!orderCreatedRef.current && state) {
@@ -42,17 +49,27 @@ export function CheckoutPage() {
   }
 
   const mySeats = seatMap?.filter((s) => state.seatIds.includes(s.id)) ?? [];
-  const subtotal = showtime
+  const seatsSubtotal = showtime
     ? mySeats.reduce((sum, s) => sum + Number(showtime.basePrice) * Number(s.seatType.priceMultiplier), 0)
     : 0;
+  const itemsSubtotal = (products ?? []).reduce(
+    (sum, p) => sum + Number(p.price) * (quantities[p.id] ?? 0),
+    0,
+  );
+  const subtotal = seatsSubtotal + itemsSubtotal;
 
   async function handlePay() {
     setIsSubmitting(true);
     try {
+      const items = Object.entries(quantities)
+        .filter(([, qty]) => qty > 0)
+        .map(([productId, quantity]) => ({ productId, quantity }));
+
       const order = await createOrder({
         showtimeId: state!.showtimeId,
         seatIds: state!.seatIds,
         promotionCode: promoCode.trim() || undefined,
+        items: items.length > 0 ? items : undefined,
       });
       orderCreatedRef.current = true;
 
@@ -87,6 +104,41 @@ export function CheckoutPage() {
           </p>
         </div>
       </div>
+
+      {products && products.length > 0 && (
+        <div className="mt-6">
+          <p className="eyebrow">Dulcería (opcional)</p>
+          <div className="mt-2 divide-y divide-hairline border border-hairline">
+            {products.map((product) => {
+              const qty = quantities[product.id] ?? 0;
+              return (
+                <div key={product.id} className="flex items-center gap-3 p-3">
+                  <div className="flex-1">
+                    <p className="text-sm text-ink">{product.name}</p>
+                    <p className="text-xs text-ink-muted">${product.price}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(product.id, qty - 1)}
+                    disabled={qty === 0}
+                    className="flex size-7 items-center justify-center border border-hairline text-ink-muted hover:text-ink disabled:opacity-30"
+                  >
+                    <Minus className="size-3.5" />
+                  </button>
+                  <span className="w-5 text-center text-sm text-ink">{qty}</span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(product.id, qty + 1)}
+                    className="flex size-7 items-center justify-center border border-hairline text-ink-muted hover:text-ink"
+                  >
+                    <Plus className="size-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 space-y-1.5">
         <Label htmlFor="promo">Código de promoción (opcional)</Label>

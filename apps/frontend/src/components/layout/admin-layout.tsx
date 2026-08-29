@@ -1,5 +1,5 @@
 import { Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
-import { BarChart3, Building2, CalendarClock, Clapperboard, Tag } from "lucide-react";
+import { BarChart3, Building2, CalendarClock, Clapperboard, Popcorn, Tag } from "lucide-react";
 import { useAuthStore } from "@/features/auth/auth.store";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ const NAV = [
   { to: "/admin/cines", label: "Cines", icon: Building2 },
   { to: "/admin/funciones", label: "Funciones", icon: CalendarClock },
   { to: "/admin/promociones", label: "Promociones", icon: Tag },
+  { to: "/admin/productos", label: "Dulcería", icon: Popcorn },
 ];
 
 export function AdminLayout() {

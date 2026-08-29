@@ -31,6 +31,7 @@ export async function createOrder(input: {
   showtimeId: string;
   seatIds: string[];
   promotionCode?: string;
+  items?: { productId: string; quantity: number }[];
 }): Promise<Order> {
   const { data } = await apiClient.post<{ order: Order }>("/orders", input);
   return data.order;

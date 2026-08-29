@@ -208,4 +208,12 @@ RF-07 (venta en línea) queda 100% cerrado en cuanto a lógica de negocio — so
 
 **Con esto, los 8 requerimientos funcionales del enunciado (RF-01 a RF-08) tienen representación completa en backend Y frontend.**
 
-**Siguiente paso**: módulo de combos de dulcería (vacío real: el backend nunca expuso gestión de `Product` pese a que `createOrder` ya acepta `items`), edición/borrado en el panel, verificación de Pagos contra Stripe/PayPal sandbox reales cuando el usuario tenga credenciales.
+**Fase 16 — Dulcería (combos)**: construida y verificada end-to-end real ([docs/frontend/05-productos-dulceria.md](docs/frontend/05-productos-dulceria.md))
+- [x] Vacío real cerrado: `Product`/`OrderItem` existían en el schema desde el inicio y `createOrder` ya aceptaba `items`, pero no había gestión de catálogo ni forma de agregarlos en el checkout
+- [x] Backend: `GET/POST/PATCH /products` — 94/94 tests
+- [x] Frontend: admin de productos + selector de combos en checkout (contador +/- por producto, total actualizado)
+- [x] Verificado con flujo completo vía `curl`: crear combo → bloquear butaca → crear orden con `items` → `201`, `subtotal: 220` = 100 (butaca) + 120 (2 combos de $60) exacto
+
+**94/94 tests de backend pasan.**
+
+**Siguiente paso**: edición/borrado en el panel, verificación de Pagos contra Stripe/PayPal sandbox reales cuando el usuario tenga credenciales.

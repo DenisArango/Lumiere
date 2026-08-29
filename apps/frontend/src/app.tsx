@@ -46,6 +46,12 @@ const PromotionsListPage = lazy(() =>
 const PromotionFormPage = lazy(() =>
   import("@/pages/admin/promotion-form").then((m) => ({ default: m.PromotionFormPage })),
 );
+const ProductsListPage = lazy(() =>
+  import("@/pages/admin/products-list").then((m) => ({ default: m.ProductsListPage })),
+);
+const ProductFormPage = lazy(() =>
+  import("@/pages/admin/product-form").then((m) => ({ default: m.ProductFormPage })),
+);
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const user = useAuthStore((s) => s.user);
@@ -121,6 +127,8 @@ export function App() {
           <Route path="funciones/nueva" element={<ShowtimeFormPage />} />
           <Route path="promociones" element={<PromotionsListPage />} />
           <Route path="promociones/nueva" element={<PromotionFormPage />} />
+          <Route path="productos" element={<ProductsListPage />} />
+          <Route path="productos/nuevo" element={<ProductFormPage />} />
         </Route>
         <Route path="*" element={<WipPage title="Página no encontrada" />} />
       </Route>
