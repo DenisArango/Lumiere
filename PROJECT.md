@@ -151,6 +151,15 @@ La fundación (schema completo de BD, contratos de API, sistema de diseño) se c
 - [x] `averageRating`/`reviewCount` en el detalle de película, moderación (`isApproved`) restringida a staff
 - [x] Probado el cálculo de "compra verificada" simulando una orden `PAID` directo vía Prisma (documentado como simulación honesta hasta que exista el módulo de Pagos)
 
-**70/70 tests de integración pasan contra Postgres/Redis reales** (11 auth + 16 catálogo + 8 cines/salas + 7 funciones + 11 reservas + 7 promociones + 10 opiniones). Probado manualmente contra el servidor real.
+**Fase 9 — Reportería** (RF-08): completa y verificada ([docs/backend/08-reportes.md](docs/backend/08-reportes.md))
+- [x] Películas más vistas, horarios de mayor demanda (por hora y por día), efectividad de promociones
+- [x] `$queryRaw` con template etiquetado (parametrizado, no SQL concatenado) para agregaciones que el query builder de Prisma no expresa bien
+- [x] Verificado con datos de prueba controlados y resultados numéricos exactos, no solo "el endpoint responde 200"
 
-**Siguiente módulo**: Pagos (Stripe + PayPal) — **requiere que el usuario provea credenciales sandbox** (`STRIPE_SECRET_KEY`, `PAYPAL_CLIENT_ID`/`PAYPAL_CLIENT_SECRET`) para verificación end-to-end real; se puede construir y probar unitariamente sin ellas. Después de Pagos, solo falta Reportería (RF-08) para completar el alcance funcional del enunciado original.
+**75/75 tests de integración pasan contra Postgres/Redis reales** (11 auth + 16 catálogo + 8 cines/salas + 7 funciones + 11 reservas + 7 promociones + 10 opiniones + 5 reportería). Probado manualmente contra el servidor real.
+
+### Los 8 requerimientos funcionales del enunciado (RF-01 a RF-08) están completos
+
+Solo falta **Pagos** para que RF-07 (venta en línea) quede 100% cerrado — el motor de reservas ya existe, falta el cobro real.
+
+**Siguiente módulo**: Pagos (Stripe + PayPal) — **requiere que el usuario provea credenciales sandbox** (`STRIPE_SECRET_KEY`, `PAYPAL_CLIENT_ID`/`PAYPAL_CLIENT_SECRET`) para verificación end-to-end real; se puede construir y probar unitariamente sin ellas.

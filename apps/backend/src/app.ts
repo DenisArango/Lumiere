@@ -21,6 +21,7 @@ import { showtimeRouter } from "@/modules/showtimes/showtime.routes";
 import { orderRouter, showtimeSeatRouter } from "@/modules/bookings/booking.routes";
 import { promotionRouter } from "@/modules/promotions/promotion.routes";
 import { movieReviewRouter, reviewRouter } from "@/modules/reviews/review.routes";
+import { reportRouter } from "@/modules/reports/report.routes";
 
 /**
  * Construye la app de Express sin arrancar el servidor (facilita testing
@@ -93,9 +94,10 @@ export function createApp(): Express {
   app.use("/api/v1/promotions", promotionRouter);
   app.use("/api/v1/movies", movieReviewRouter);
   app.use("/api/v1/reviews", reviewRouter);
+  app.use("/api/v1/reports", reportRouter);
 
-  // El resto de routers de dominio (payments, reports) se montan aqui a
-  // medida que cada modulo se construye (ver PROJECT.md seccion 6).
+  // El unico modulo de dominio que falta (Pagos) se monta aqui cuando se
+  // construya (ver PROJECT.md seccion 6).
 
   app.use(notFoundHandler);
   app.use(errorHandler);
