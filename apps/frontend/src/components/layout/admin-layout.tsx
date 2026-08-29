@@ -1,5 +1,5 @@
 import { Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
-import { BarChart3, Building2, Clapperboard, Tag } from "lucide-react";
+import { BarChart3, Building2, CalendarClock, Clapperboard, Tag } from "lucide-react";
 import { useAuthStore } from "@/features/auth/auth.store";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,7 @@ const NAV = [
   { to: "/admin", label: "Reportería", icon: BarChart3, end: true },
   { to: "/admin/peliculas", label: "Películas", icon: Clapperboard },
   { to: "/admin/cines", label: "Cines", icon: Building2 },
+  { to: "/admin/funciones", label: "Funciones", icon: CalendarClock },
   { to: "/admin/promociones", label: "Promociones", icon: Tag },
 ];
 

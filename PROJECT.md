@@ -192,4 +192,13 @@ RF-07 (venta en línea) queda 100% cerrado en cuanto a lógica de negocio — so
 
 **Verificación visual en navegador — sigue pendiente** (sin herramienta de automatización de navegador en esta sesión). Requiere que el usuario abra `pnpm dev:backend` + `pnpm dev:frontend` y navegue la app.
 
-**Siguiente módulo de frontend**: Gestión de cines, salas, funciones y promociones — replicar el mismo patrón (lista + formulario) para los módulos de backend restantes.
+**Fase 14 — Frontend, panel de administración completo**: construido y verificado end-to-end real ([docs/frontend/03-panel-admin-completo.md](docs/frontend/03-panel-admin-completo.md))
+- [x] Cines/salas (con constructor de layout de butacas), funciones (selección en cascada cine→sala), promociones (constructor de reglas) — mismo patrón lista+formulario en los 3 módulos
+- [x] Bundle principal sin crecer (632KB/194KB gzip) — cada página nueva del panel en su propio chunk pequeño
+- [x] **Los 4 flujos verificados vía `curl` real** con el payload exacto de cada formulario: crear cine → sala → función → promoción, todos `201`
+
+**Con esto, los 5 módulos de gestión del backend (películas, cines/salas, funciones, promociones, reportería) tienen interfaz de creación completa.**
+
+**Verificación visual en navegador — sigue pendiente** (sin herramienta de automatización de navegador en esta sesión). Requiere que el usuario abra `pnpm dev:backend` + `pnpm dev:frontend` y navegue la app.
+
+**Siguiente paso**: edición/borrado en el panel, verificación de Pagos contra Stripe/PayPal sandbox reales cuando el usuario tenga credenciales.

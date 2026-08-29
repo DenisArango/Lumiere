@@ -17,7 +17,9 @@ import { useAuthStore } from "@/features/auth/auth.store";
 /**
  * El panel de administracion (incluye recharts, un chunk pesado) se separa
  * en su propio bundle - un cliente comun jamas visita /admin, no tiene
- * sentido que pague ese peso de descarga.
+ * sentido que pague ese peso de descarga. Un unico Suspense en la ruta
+ * padre ("admin") cubre todas las rutas hijas, que se renderizan dentro
+ * de su <Outlet />.
  */
 const AdminLayout = lazy(() => import("@/components/layout/admin-layout").then((m) => ({ default: m.AdminLayout })));
 const ReportsDashboardPage = lazy(() =>
@@ -25,6 +27,25 @@ const ReportsDashboardPage = lazy(() =>
 );
 const MoviesListPage = lazy(() => import("@/pages/admin/movies-list").then((m) => ({ default: m.MoviesListPage })));
 const MovieFormPage = lazy(() => import("@/pages/admin/movie-form").then((m) => ({ default: m.MovieFormPage })));
+const CinemasListPage = lazy(() =>
+  import("@/pages/admin/cinemas-list").then((m) => ({ default: m.CinemasListPage })),
+);
+const CinemaFormPage = lazy(() => import("@/pages/admin/cinema-form").then((m) => ({ default: m.CinemaFormPage })));
+const CinemaDetailPage = lazy(() =>
+  import("@/pages/admin/cinema-detail").then((m) => ({ default: m.CinemaDetailPage })),
+);
+const ShowtimesListPage = lazy(() =>
+  import("@/pages/admin/showtimes-list").then((m) => ({ default: m.ShowtimesListPage })),
+);
+const ShowtimeFormPage = lazy(() =>
+  import("@/pages/admin/showtime-form").then((m) => ({ default: m.ShowtimeFormPage })),
+);
+const PromotionsListPage = lazy(() =>
+  import("@/pages/admin/promotions-list").then((m) => ({ default: m.PromotionsListPage })),
+);
+const PromotionFormPage = lazy(() =>
+  import("@/pages/admin/promotion-form").then((m) => ({ default: m.PromotionFormPage })),
+);
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const user = useAuthStore((s) => s.user);
@@ -89,40 +110,17 @@ export function App() {
             </Suspense>
           }
         >
-          <Route
-            index
-            element={
-              <Suspense fallback={<AdminFallback />}>
-                <ReportsDashboardPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path="peliculas"
-            element={
-              <Suspense fallback={<AdminFallback />}>
-                <MoviesListPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path="peliculas/nueva"
-            element={
-              <Suspense fallback={<AdminFallback />}>
-                <MovieFormPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path="peliculas/:id/editar"
-            element={
-              <Suspense fallback={<AdminFallback />}>
-                <MovieFormPage />
-              </Suspense>
-            }
-          />
-          <Route path="cines" element={<WipPage title="Gestión de cines" />} />
-          <Route path="promociones" element={<WipPage title="Gestión de promociones" />} />
+          <Route index element={<ReportsDashboardPage />} />
+          <Route path="peliculas" element={<MoviesListPage />} />
+          <Route path="peliculas/nueva" element={<MovieFormPage />} />
+          <Route path="peliculas/:id/editar" element={<MovieFormPage />} />
+          <Route path="cines" element={<CinemasListPage />} />
+          <Route path="cines/nuevo" element={<CinemaFormPage />} />
+          <Route path="cines/:id" element={<CinemaDetailPage />} />
+          <Route path="funciones" element={<ShowtimesListPage />} />
+          <Route path="funciones/nueva" element={<ShowtimeFormPage />} />
+          <Route path="promociones" element={<PromotionsListPage />} />
+          <Route path="promociones/nueva" element={<PromotionFormPage />} />
         </Route>
         <Route path="*" element={<WipPage title="Página no encontrada" />} />
       </Route>

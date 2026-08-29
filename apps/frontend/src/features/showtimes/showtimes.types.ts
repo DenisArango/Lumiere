@@ -22,3 +22,13 @@ export interface ListShowtimesParams {
   page?: number;
   pageSize?: number;
 }
+
+export interface CreateShowtimeInput {
+  movieId: string;
+  roomId: string;
+  audioLanguageId: string;
+  subtitleLanguageId?: string;
+  startTime: string;
+  basePrice: number;
+  format: "TWO_D" | "THREE_D";
+}
