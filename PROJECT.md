@@ -89,6 +89,8 @@ La fundación (schema completo de BD, contratos de API, sistema de diseño) se c
 
 ## 7. Índice de documentación
 
+> **Publicación en GitBook**: [`SUMMARY.md`](SUMMARY.md) + [`.gitbook.yaml`](.gitbook.yaml) en la raíz configuran la tabla de contenido para Git Sync — al conectar este repositorio en GitBook (Space → Settings → Git Sync), la documentación completa queda navegable automáticamente. Si se agrega un `.md` nuevo, debe sumarse también a `SUMMARY.md` para que aparezca ahí.
+
 - [docs/00-brand-lumiere.md](docs/00-brand-lumiere.md) — Identidad de marca, paleta, tipografía, tono
 - [docs/01-requerimientos.md](docs/01-requerimientos.md) — Requerimientos funcionales y no funcionales, valor agregado, IA
 - [docs/02-metodologia.md](docs/02-metodologia.md) — Metodología de trabajo y artefactos
