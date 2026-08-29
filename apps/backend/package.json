@@ -17,7 +17,8 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:seed": "tsx prisma/seed.ts",
-    "prisma:seed-demo": "tsx prisma/seed-demo.ts"
+    "prisma:seed-demo": "tsx prisma/seed-demo.ts",
+    "prisma:cleanup-postman": "tsx prisma/cleanup-postman-run.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

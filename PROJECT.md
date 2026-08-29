@@ -99,6 +99,7 @@ La fundación (schema completo de BD, contratos de API, sistema de diseño) se c
 - [docs/05-diagramas-uml.md](docs/05-diagramas-uml.md) — Casos de uso, clases, secuencia
 - [docs/06-seguridad.md](docs/06-seguridad.md) — Seguridad en las 3 capas
 - [docs/07-guia-presentacion.md](docs/07-guia-presentacion.md) — Preguntas esperadas en la presentación y cómo responderlas (incluye recomendaciones de dónde publicar esta documentación)
+- [docs/08-guia-pruebas-api.md](docs/08-guia-pruebas-api.md) — Cómo validar todos los endpoints y los controles de seguridad con la colección de EchoAPI/Postman
 - `docs/backend/<modulo>.md` — Documentación por módulo del backend (se crea al completar cada módulo)
 - `docs/frontend/<modulo>.md` — Documentación por módulo del frontend (se crea al completar cada módulo)
 
@@ -225,5 +226,12 @@ RF-07 (venta en línea) queda 100% cerrado en cuanto a lógica de negocio — so
 - [x] Verificado con flujo completo vía `curl`: validar boleto pagado (`200`) → reintentar el mismo código (`409`, boleto de un solo uso)
 
 **100/100 tests de backend pasan.**
+
+**Fase 19 — Colección de pruebas de API (EchoAPI/Postman)**: construida y verificada end-to-end real ([docs/08-guia-pruebas-api.md](docs/08-guia-pruebas-api.md))
+- [x] `docs/api-testing/generate-collection.js` genera `Lumiere.postman_collection.json` (Postman v2.1, importable directo en EchoAPI): 70 requests en 11 folders (0 auth + 1-9 módulos + 10 seguridad), con encadenamiento de variables entre requests y scripts `pm.test` en cada una
+- [x] Folder 10 dedicado a pruebas de seguridad negativas: 401 sin sesión, 403 por RBAC, 403 por CSRF ausente, 422 de Zod, inyección SQL inocua (Prisma parametriza), 404 no enumerable, rate limiter de login — cada request documenta a qué control de `docs/06-seguridad.md` corresponde
+- [x] **Verificado de verdad con Newman** (no solo generado): se corrió contra el backend real repetidas veces hasta llegar a una corrida limpia — encontró y corrigió 5 bugs reales en el propio diseño de la colección (formato de `url` que rompía Newman, codificación de variables de query, orden de folders que dejaba `{{productId}}` sin capturar, un `PATCH` que desactivaba el producto que la propia colección necesitaba comprar después, una cancelación de orden que pisaba la prueba de pago siguiente)
+- [x] `prisma/cleanup-postman-run.ts` (`pnpm --filter @lumiere/backend prisma:cleanup-postman`): borra solo los registros de nombre fijo que crea la colección, para poder re-correrla completa sin choques de unicidad, sin tocar los datos de seed/seed-demo
+- [x] Corrida final: **73/73 aserciones, 70/70 requests, 0 fallos**
 
 **Siguiente paso**: edición/borrado en el panel, verificación de Pagos contra Stripe/PayPal sandbox reales cuando el usuario tenga credenciales.

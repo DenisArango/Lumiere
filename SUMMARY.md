@@ -13,6 +13,7 @@
 * [Diagramas UML](docs/05-diagramas-uml.md)
 * [Seguridad](docs/06-seguridad.md)
 * [Guía de presentación](docs/07-guia-presentacion.md)
+* [Guía de pruebas de la API](docs/08-guia-pruebas-api.md)
 
 ## Backend
 
