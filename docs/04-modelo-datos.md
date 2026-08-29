@@ -183,6 +183,7 @@ erDiagram
         decimal discountAmount
         decimal totalAmount
         string qrCode
+        datetime checkedInAt
         datetime createdAt
     }
 
@@ -291,3 +292,4 @@ erDiagram
 - **`REVIEW.isVerifiedPurchase`** se deriva de si `orderId` no es nulo y esa orden está `PAID`, calculado al crear la reseña — no se confía en el cliente para marcarlo.
 - **`AUDIT_LOG`** es de solo-inserción (append-only) y registra acciones sensibles (cambios de precio, cancelaciones, acciones administrativas) — requisito de la capa de seguridad de backend.
 - **Todas las tablas usan `id UUID`** (no autoincremental) para no filtrar volumen de negocio en URLs públicas (ej. `/orders/{id}`) y evitar enumeración.
+- **`ORDER.checkedInAt`** (agregado en la fase de validación de boletos, ver [docs/backend/10-validacion-boletos.md](backend/10-validacion-boletos.md)): marca el momento en que el código QR fue escaneado en la entrada. `null` = boleto no usado todavía. Existe específicamente para que un mismo QR no pueda canjearse dos veces (alguien reenvía una captura de pantalla) — la validación revisa este campo antes de aceptar el boleto.
