@@ -10,6 +10,7 @@ import { logger } from "@/lib/logger";
 import { globalRateLimiter } from "@/middleware/rate-limit";
 import { notFoundHandler } from "@/middleware/not-found";
 import { errorHandler } from "@/middleware/error-handler";
+import { authRouter } from "@/modules/auth/auth.routes";
 
 /**
  * Construye la app de Express sin arrancar el servidor (facilita testing
@@ -69,7 +70,9 @@ export function createApp(): Express {
     res.status(200).json({ status: "ok", service: "lumiere-api", timestamp: new Date().toISOString() });
   });
 
-  // Los routers de dominio (auth, movies, cinemas, showtimes, bookings,
+  app.use("/api/v1/auth", authRouter);
+
+  // El resto de routers de dominio (movies, cinemas, showtimes, bookings,
   // payments, promotions, reviews, reports) se montan aqui a medida que
   // cada modulo se construye (ver PROJECT.md seccion 6).
 

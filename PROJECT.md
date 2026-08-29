@@ -105,14 +105,19 @@ La fundación (schema completo de BD, contratos de API, sistema de diseño) se c
 
 **Última actualización**: 2026-08-29
 
-**Completado y verificado de punta a punta** (ver [docs/backend/00-foundation.md](docs/backend/00-foundation.md)):
+**Fase 1 — Fundación**: completa y verificada ([docs/backend/00-foundation.md](docs/backend/00-foundation.md))
 - [x] Estructura de repo (monorepo pnpm workspaces, Node 22 LTS)
 - [x] Documentación fundacional (marca, requerimientos, metodología, arquitectura, modelo de datos, UML, seguridad)
 - [x] Schema Prisma completo + migración inicial **aplicada contra Postgres real**
-- [x] Esqueleto backend (Express + TS + middlewares de seguridad + config) — compila, tipa, lintea y arranca sin errores
-- [x] Docker Compose (Postgres 16 + Redis 7) — corriendo y verificado (Postgres remapeado al puerto 5433 para evitar conflicto con instalación nativa en Windows, ver incidente 2 en el doc de fundación)
+- [x] Esqueleto backend (Express + TS + middlewares de seguridad + config)
+- [x] Docker Compose (Postgres 16 en puerto 5433 + Redis 7) — corriendo y verificado
 - [x] Seed de datos de referencia ejecutado
-- [x] Suite de tests (`jest`) pasa
-- [x] Servidor real (`tsx src/server.ts`) probado end-to-end: conecta a Postgres y Redis, `/api/v1/health` responde 200
 
-**Siguiente módulo**: Auth + RBAC
+**Fase 2 — Auth + RBAC**: completa y verificada ([docs/backend/01-auth.md](docs/backend/01-auth.md))
+- [x] Registro, login, refresh con rotación, logout, `/me`
+- [x] Middlewares `authenticate` y `authorize` (RBAC) reutilizables por módulos futuros
+- [x] CSRF double-submit cookie en rutas de sesión
+- [x] 13/13 tests de integración pasan contra Postgres/Redis reales
+- [x] Probado manualmente contra el servidor real (`curl`)
+
+**Siguiente módulo**: Catálogo (películas, géneros, directores/actores)
