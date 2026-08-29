@@ -125,6 +125,11 @@ La fundación (schema completo de BD, contratos de API, sistema de diseño) se c
 - [x] Filtros de lista (estado, género, búsqueda) + paginación reutilizable (`utils/pagination.ts`)
 - [x] Sin endpoint de borrado de películas a propósito — se archivan (`MovieStatus.ARCHIVED`)
 
-**27/27 tests de integración pasan contra Postgres/Redis reales** (11 auth + 16 catálogo). Probado manualmente contra el servidor real.
+**Fase 4 — Cines y salas** (RF-03): completa y verificada ([docs/backend/03-cines-salas.md](docs/backend/03-cines-salas.md))
+- [x] CRUD de cines, salas anidadas bajo cine, generación transaccional del mapa de butacas por fila
+- [x] `totalCapacity` calculado siempre de las butacas reales generadas, nunca recibido del cliente
+- [x] Sin regeneración de layout ni borrado — se desactiva/archiva, igual que películas (deuda técnica documentada)
 
-**Siguiente módulo**: Cines y salas (RF-03)
+**35/35 tests de integración pasan contra Postgres/Redis reales** (11 auth + 16 catálogo + 8 cines/salas). Probado manualmente contra el servidor real.
+
+**Siguiente módulo**: Funciones (RF-04)

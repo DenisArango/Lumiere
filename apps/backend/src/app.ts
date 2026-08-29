@@ -14,6 +14,9 @@ import { authRouter } from "@/modules/auth/auth.routes";
 import { genreRouter } from "@/modules/genres/genre.routes";
 import { personRouter } from "@/modules/people/person.routes";
 import { movieRouter } from "@/modules/movies/movie.routes";
+import { cinemaRouter } from "@/modules/cinemas/cinema.routes";
+import { roomRouter } from "@/modules/cinemas/room.routes";
+import { seatTypeRouter } from "@/modules/seat-types/seat-type.routes";
 
 /**
  * Construye la app de Express sin arrancar el servidor (facilita testing
@@ -77,8 +80,11 @@ export function createApp(): Express {
   app.use("/api/v1/genres", genreRouter);
   app.use("/api/v1/people", personRouter);
   app.use("/api/v1/movies", movieRouter);
+  app.use("/api/v1/cinemas", cinemaRouter);
+  app.use("/api/v1/rooms", roomRouter);
+  app.use("/api/v1/seat-types", seatTypeRouter);
 
-  // El resto de routers de dominio (cinemas, showtimes, bookings, payments,
+  // El resto de routers de dominio (showtimes, bookings, payments,
   // promotions, reviews, reports) se montan aqui a medida que cada modulo
   // se construye (ver PROJECT.md seccion 6).
 
