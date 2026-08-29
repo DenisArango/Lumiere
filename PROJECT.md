@@ -130,6 +130,11 @@ La fundación (schema completo de BD, contratos de API, sistema de diseño) se c
 - [x] `totalCapacity` calculado siempre de las butacas reales generadas, nunca recibido del cliente
 - [x] Sin regeneración de layout ni borrado — se desactiva/archiva, igual que películas (deuda técnica documentada)
 
-**35/35 tests de integración pasan contra Postgres/Redis reales** (11 auth + 16 catálogo + 8 cines/salas). Probado manualmente contra el servidor real.
+**Fase 5 — Funciones** (RF-04): completa y verificada ([docs/backend/04-funciones.md](docs/backend/04-funciones.md))
+- [x] Creación de función calcula `endTime` automáticamente y valida cruce de horario por sala
+- [x] Materializa `ShowtimeSeat` (mapa de disponibilidad) para toda la sala al crear la función — la pieza que el futuro motor de reservas necesita
+- [x] Cancelar una función libera el horario automáticamente para nuevas funciones
 
-**Siguiente módulo**: Funciones (RF-04)
+**42/42 tests de integración pasan contra Postgres/Redis reales** (11 auth + 16 catálogo + 8 cines/salas + 7 funciones). Probado manualmente contra el servidor real.
+
+**Siguiente módulo**: Motor de reservas (selección de asientos + bloqueo temporal Redis/Socket.io)
