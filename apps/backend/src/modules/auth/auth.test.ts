@@ -11,7 +11,7 @@ const testPassword = "Sup3rSecret!";
 afterAll(async () => {
   await prisma.user.deleteMany({ where: { email: testEmail } });
   await prisma.$disconnect();
-  redis.disconnect();
+  await redis.quit().catch(() => undefined);
 });
 
 function asArray(value: string | string[] | undefined): string[] {

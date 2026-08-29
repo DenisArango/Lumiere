@@ -2,8 +2,8 @@ import request from "supertest";
 import { createApp } from "@/app";
 import { redis } from "@/lib/redis";
 
-afterAll(() => {
-  redis.disconnect();
+afterAll(async () => {
+  await redis.quit().catch(() => undefined);
 });
 
 describe("GET /api/v1/health", () => {

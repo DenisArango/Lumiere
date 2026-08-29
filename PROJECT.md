@@ -118,7 +118,13 @@ La fundación (schema completo de BD, contratos de API, sistema de diseño) se c
 - [x] Registro, login, refresh con rotación, logout, `/me`
 - [x] Middlewares `authenticate` y `authorize` (RBAC) reutilizables por módulos futuros
 - [x] CSRF double-submit cookie en rutas de sesión
-- [x] 13/13 tests de integración pasan contra Postgres/Redis reales
-- [x] Probado manualmente contra el servidor real (`curl`)
 
-**Siguiente módulo**: Catálogo (películas, géneros, directores/actores)
+**Fase 3 — Catálogo** (películas, géneros, directores/actores): completa y verificada ([docs/backend/02-catalogo.md](docs/backend/02-catalogo.md))
+- [x] CRUD de películas con géneros y créditos transaccionales, validación de director requerido
+- [x] Personas (directores/actores) con contador de películas por rol calculado, no almacenado
+- [x] Filtros de lista (estado, género, búsqueda) + paginación reutilizable (`utils/pagination.ts`)
+- [x] Sin endpoint de borrado de películas a propósito — se archivan (`MovieStatus.ARCHIVED`)
+
+**27/27 tests de integración pasan contra Postgres/Redis reales** (11 auth + 16 catálogo). Probado manualmente contra el servidor real.
+
+**Siguiente módulo**: Cines y salas (RF-03)

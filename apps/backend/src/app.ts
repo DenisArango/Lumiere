@@ -11,6 +11,9 @@ import { globalRateLimiter } from "@/middleware/rate-limit";
 import { notFoundHandler } from "@/middleware/not-found";
 import { errorHandler } from "@/middleware/error-handler";
 import { authRouter } from "@/modules/auth/auth.routes";
+import { genreRouter } from "@/modules/genres/genre.routes";
+import { personRouter } from "@/modules/people/person.routes";
+import { movieRouter } from "@/modules/movies/movie.routes";
 
 /**
  * Construye la app de Express sin arrancar el servidor (facilita testing
@@ -71,10 +74,13 @@ export function createApp(): Express {
   });
 
   app.use("/api/v1/auth", authRouter);
+  app.use("/api/v1/genres", genreRouter);
+  app.use("/api/v1/people", personRouter);
+  app.use("/api/v1/movies", movieRouter);
 
-  // El resto de routers de dominio (movies, cinemas, showtimes, bookings,
-  // payments, promotions, reviews, reports) se montan aqui a medida que
-  // cada modulo se construye (ver PROJECT.md seccion 6).
+  // El resto de routers de dominio (cinemas, showtimes, bookings, payments,
+  // promotions, reviews, reports) se montan aqui a medida que cada modulo
+  // se construye (ver PROJECT.md seccion 6).
 
   app.use(notFoundHandler);
   app.use(errorHandler);

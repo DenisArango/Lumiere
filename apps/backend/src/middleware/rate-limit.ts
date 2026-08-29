@@ -1,6 +1,7 @@
 import rateLimit from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
 import { redis } from "@/lib/redis";
+import { env } from "@/config/env";
 
 /**
  * Fabrica de rate limiters respaldados por Redis (para que el limite se
@@ -14,6 +15,10 @@ export function createRateLimiter(options: { windowMs: number; max: number; pref
     max: options.max,
     standardHeaders: true,
     legacyHeaders: false,
+    // En tests de integracion se hacen decenas de logins/registros reales
+    // contra la app en minutos - el limite existe para trafico real, no
+    // para la suite de tests. Se desactiva solo cuando NODE_ENV=test.
+    skip: () => env.NODE_ENV === "test",
     store: new RedisStore({
       // @ts-expect-error - firma de sendCommand de ioredis es compatible en runtime
       sendCommand: (...args: string[]) => redis.call(...args),
