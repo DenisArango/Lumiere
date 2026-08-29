@@ -182,6 +182,14 @@ RF-07 (venta en línea) queda 100% cerrado en cuanto a lógica de negocio — so
 
 **86/86 tests de backend pasan.** `tsc -b`, `oxlint` y `vite build` del frontend limpios (2471 módulos).
 
+**Fase 13 — Frontend, panel de administración (fase 1)**: construido y verificado end-to-end real ([docs/frontend/02-panel-admin.md](docs/frontend/02-panel-admin.md))
+- [x] Dashboard de reportería (Recharts) con los 3 indicadores de RF-08 — paleta validada con el skill de dataviz (contraste del dorado verificado, etiquetas de valor visibles como canal de alivio)
+- [x] Gestión de películas completa (lista + crear/editar) con editor de reparto (buscar o crear personas al vuelo)
+- [x] **Tercer y cuarto bug real encontrados**: faltaban `GET /ratings` y `GET /languages` — agregados, 88/88 tests
+- [x] Code-splitting del panel de administración (`React.lazy`) — el bundle principal bajó de 1.15MB a 629KB (194KB gzip) al aislar Recharts/admin en su propio chunk
+
+**88/88 tests de backend pasan.** Flujo administrativo completo (login admin → crear persona → crear película con géneros y créditos anidados) verificado vía `curl` contra el servidor real, `201 Created`.
+
 **Verificación visual en navegador — sigue pendiente** (sin herramienta de automatización de navegador en esta sesión). Requiere que el usuario abra `pnpm dev:backend` + `pnpm dev:frontend` y navegue la app.
 
-**Siguiente módulo de frontend**: Panel de administración (catálogo, cines/salas, funciones, promociones, reportería) — todo listo del lado del backend, sin interfaz todavía.
+**Siguiente módulo de frontend**: Gestión de cines, salas, funciones y promociones — replicar el mismo patrón (lista + formulario) para los módulos de backend restantes.

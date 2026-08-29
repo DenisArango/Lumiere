@@ -67,3 +67,29 @@ export interface ListMoviesParams {
   genreId?: string;
   search?: string;
 }
+
+export interface MovieCreditInput {
+  personId: string;
+  creditRole: "DIRECTOR" | "ACTOR";
+  characterName?: string;
+  billingOrder?: number;
+}
+
+export interface CreateMovieInput {
+  title: string;
+  originalTitle?: string;
+  synopsis: string;
+  durationMinutes: number;
+  releaseYear: number;
+  countryOfOrigin: string;
+  posterUrl?: string;
+  backdropUrl?: string;
+  trailerUrl?: string;
+  status: MovieStatus;
+  ratingId: string;
+  originalLanguageId: string;
+  genreIds: string[];
+  credits: MovieCreditInput[];
+}
+
+export type UpdateMovieInput = Partial<CreateMovieInput>;
