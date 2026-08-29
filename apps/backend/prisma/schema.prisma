@@ -1,0 +1,513 @@
+// Lumiere - schema de base de datos
+// Fuente conceptual: docs/04-modelo-datos.md - mantener ambos sincronizados.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  CUSTOMER
+  BOX_OFFICE
+  CINEMA_MANAGER
+  SUPER_ADMIN
+}
+
+enum MovieStatus {
+  COMING_SOON
+  IN_THEATERS
+  ARCHIVED
+}
+
+enum CreditRole {
+  DIRECTOR
+  ACTOR
+}
+
+enum RoomType {
+  STANDARD
+  IMAX
+  VIP
+  FOUR_DX
+  DOLBY_ATMOS
+}
+
+enum ShowtimeFormat {
+  TWO_D
+  THREE_D
+}
+
+enum ShowtimeStatus {
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+enum ShowtimeSeatStatus {
+  AVAILABLE
+  LOCKED
+  SOLD
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDED
+  EXPIRED
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYPAL
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+// ---------------------------------------------------------------------------
+// Usuarios y autenticacion
+// ---------------------------------------------------------------------------
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  passwordHash    String
+  firstName       String
+  lastName        String
+  phone           String?
+  role            Role      @default(CUSTOMER)
+  isActive        Boolean   @default(true)
+  loyaltyMember   Boolean   @default(false)
+  loyaltyPoints   Int       @default(0)
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  refreshTokens RefreshToken[]
+  orders        Order[]
+  reviews       Review[]
+  lockedSeats   ShowtimeSeat[] @relation("SeatLockedBy")
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid())
+  userId     String
+  tokenHash  String    @unique
+  userAgent  String?
+  ipAddress  String?
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Catalogo: peliculas, personas, generos, idiomas, clasificacion
+// ---------------------------------------------------------------------------
+
+model Movie {
+  id                 String      @id @default(uuid())
+  title              String
+  originalTitle      String?
+  synopsis           String
+  durationMinutes    Int
+  releaseYear         Int
+  countryOfOrigin    String
+  posterUrl          String?
+  backdropUrl        String?
+  trailerUrl         String?
+  status             MovieStatus @default(COMING_SOON)
+  ratingId           String
+  originalLanguageId String
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  rating           MovieRating   @relation(fields: [ratingId], references: [id])
+  originalLanguage Language      @relation("MovieOriginalLanguage", fields: [originalLanguageId], references: [id])
+  genres           MovieGenre[]
+  credits          MovieCredit[]
+  showtimes        Showtime[]
+  reviews          Review[]
+  promotionRules   PromotionRule[]
+
+  @@index([status])
+  @@index([releaseYear])
+  @@map("movies")
+}
+
+model Genre {
+  id     String       @id @default(uuid())
+  name   String       @unique
+  movies MovieGenre[]
+
+  @@map("genres")
+}
+
+model MovieGenre {
+  movieId String
+  genreId String
+
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  genre Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@id([movieId, genreId])
+  @@map("movie_genres")
+}
+
+model Language {
+  id   String @id @default(uuid())
+  name String
+  code String @unique
+
+  moviesOriginal   Movie[]     @relation("MovieOriginalLanguage")
+  showtimesAudio    Showtime[] @relation("ShowtimeAudioLanguage")
+  showtimesSubtitle Showtime[] @relation("ShowtimeSubtitleLanguage")
+
+  @@map("languages")
+}
+
+model MovieRating {
+  id          String  @id @default(uuid())
+  code        String  @unique
+  description String
+  minAge      Int     @default(0)
+
+  movies Movie[]
+
+  @@map("movie_ratings")
+}
+
+model Person {
+  id        String    @id @default(uuid())
+  firstName String
+  lastName  String
+  bio       String?
+  photoUrl  String?
+  birthDate DateTime?
+  nationality String?
+
+  credits MovieCredit[]
+
+  @@map("people")
+}
+
+model MovieCredit {
+  id             String     @id @default(uuid())
+  movieId        String
+  personId       String
+  creditRole     CreditRole
+  characterName  String?
+  billingOrder   Int        @default(0)
+
+  movie  Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, personId, creditRole, characterName])
+  @@index([personId, creditRole])
+  @@map("movie_credits")
+}
+
+// ---------------------------------------------------------------------------
+// Cines, salas y butacas
+// ---------------------------------------------------------------------------
+
+model Cinema {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  city      String
+  state     String
+  country   String
+  latitude  Decimal? @db.Decimal(9, 6)
+  longitude Decimal? @db.Decimal(9, 6)
+  phone     String?
+  isActive  Boolean  @default(true)
+
+  rooms          Room[]
+  promotionRules PromotionRule[]
+
+  @@index([city])
+  @@map("cinemas")
+}
+
+model Room {
+  id             String   @id @default(uuid())
+  cinemaId       String
+  name           String
+  roomType       RoomType @default(STANDARD)
+  totalCapacity  Int
+
+  cinema    Cinema     @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
+  seats     Seat[]
+  showtimes Showtime[]
+
+  @@unique([cinemaId, name])
+  @@map("rooms")
+}
+
+model SeatType {
+  id               String  @id @default(uuid())
+  name             String  @unique
+  priceMultiplier  Decimal @default(1.0) @db.Decimal(4, 2)
+
+  seats Seat[]
+
+  @@map("seat_types")
+}
+
+model Seat {
+  id         String  @id @default(uuid())
+  roomId     String
+  rowLabel   String
+  seatNumber Int
+  seatTypeId String
+  isActive   Boolean @default(true)
+
+  room          Room           @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  seatType      SeatType       @relation(fields: [seatTypeId], references: [id])
+  showtimeSeats ShowtimeSeat[]
+
+  @@unique([roomId, rowLabel, seatNumber])
+  @@map("seats")
+}
+
+// ---------------------------------------------------------------------------
+// Funciones y disponibilidad de butacas por funcion
+// ---------------------------------------------------------------------------
+
+model Showtime {
+  id                 String         @id @default(uuid())
+  movieId            String
+  roomId             String
+  audioLanguageId    String
+  subtitleLanguageId String?
+  startTime          DateTime
+  endTime            DateTime
+  basePrice          Decimal        @db.Decimal(10, 2)
+  format             ShowtimeFormat @default(TWO_D)
+  status             ShowtimeStatus @default(SCHEDULED)
+
+  movie            Movie          @relation(fields: [movieId], references: [id])
+  room             Room           @relation(fields: [roomId], references: [id])
+  audioLanguage    Language       @relation("ShowtimeAudioLanguage", fields: [audioLanguageId], references: [id])
+  subtitleLanguage Language?      @relation("ShowtimeSubtitleLanguage", fields: [subtitleLanguageId], references: [id])
+  seats            ShowtimeSeat[]
+  orders           Order[]
+  promotionRules   PromotionRule[]
+
+  @@index([movieId])
+  @@index([roomId, startTime])
+  @@index([startTime])
+  @@map("showtimes")
+}
+
+model ShowtimeSeat {
+  id             String              @id @default(uuid())
+  showtimeId     String
+  seatId         String
+  status         ShowtimeSeatStatus  @default(AVAILABLE)
+  lockedByUserId String?
+  lockExpiresAt  DateTime?
+
+  showtime    Showtime   @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
+  seat        Seat       @relation(fields: [seatId], references: [id])
+  lockedByUser User?     @relation("SeatLockedBy", fields: [lockedByUserId], references: [id])
+  orderSeat   OrderSeat?
+
+  @@unique([showtimeId, seatId])
+  @@index([showtimeId, status])
+  @@map("showtime_seats")
+}
+
+// ---------------------------------------------------------------------------
+// Ordenes, pagos y productos de dulceria
+// ---------------------------------------------------------------------------
+
+model Order {
+  id              String      @id @default(uuid())
+  userId          String
+  showtimeId      String
+  promotionId     String?
+  status          OrderStatus @default(PENDING)
+  subtotal        Decimal     @db.Decimal(10, 2)
+  discountAmount  Decimal     @default(0) @db.Decimal(10, 2)
+  totalAmount     Decimal     @db.Decimal(10, 2)
+  qrCode          String?     @unique
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id])
+  showtime   Showtime    @relation(fields: [showtimeId], references: [id])
+  promotion  Promotion?  @relation(fields: [promotionId], references: [id])
+  seats      OrderSeat[]
+  items      OrderItem[]
+  payment    Payment?
+  reviews    Review[]
+
+  @@index([userId])
+  @@index([showtimeId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderSeat {
+  id               String  @id @default(uuid())
+  orderId          String
+  showtimeSeatId   String  @unique
+  priceAtPurchase  Decimal @db.Decimal(10, 2)
+
+  order        Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  showtimeSeat ShowtimeSeat @relation(fields: [showtimeSeatId], references: [id])
+
+  @@map("order_seats")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+
+  orderItems OrderItem[]
+
+  @@map("products")
+}
+
+model OrderItem {
+  id              String  @id @default(uuid())
+  orderId         String
+  productId       String
+  quantity        Int     @default(1)
+  priceAtPurchase Decimal @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Payment {
+  id                String          @id @default(uuid())
+  orderId           String          @unique
+  provider          PaymentProvider
+  providerPaymentId String          @unique
+  amount            Decimal         @db.Decimal(10, 2)
+  currency          String          @default("USD")
+  status            PaymentStatus   @default(PENDING)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+// ---------------------------------------------------------------------------
+// Promociones
+// ---------------------------------------------------------------------------
+
+model Promotion {
+  id             String       @id @default(uuid())
+  name           String
+  description    String?
+  code           String?      @unique
+  discountType   DiscountType
+  discountValue  Decimal      @db.Decimal(10, 2)
+  startDate      DateTime
+  endDate        DateTime
+  isActive       Boolean      @default(true)
+
+  rules  PromotionRule[]
+  orders Order[]
+
+  @@index([isActive, startDate, endDate])
+  @@map("promotions")
+}
+
+model PromotionRule {
+  id          String  @id @default(uuid())
+  promotionId String
+  movieId     String?
+  cinemaId    String?
+  showtimeId  String?
+  dayOfWeek   Int?
+
+  promotion Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  movie     Movie?    @relation(fields: [movieId], references: [id])
+  cinema    Cinema?   @relation(fields: [cinemaId], references: [id])
+  showtime  Showtime? @relation(fields: [showtimeId], references: [id])
+
+  @@map("promotion_rules")
+}
+
+// ---------------------------------------------------------------------------
+// Opiniones
+// ---------------------------------------------------------------------------
+
+model Review {
+  id                  String   @id @default(uuid())
+  userId              String
+  movieId             String
+  orderId             String?
+  rating              Int
+  comment             String?
+  isVerifiedPurchase  Boolean  @default(false)
+  isApproved          Boolean  @default(true)
+  createdAt           DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  order Order? @relation(fields: [orderId], references: [id])
+
+  @@unique([userId, movieId])
+  @@index([movieId, isApproved])
+  @@map("reviews")
+}
+
+// ---------------------------------------------------------------------------
+// Auditoria
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
