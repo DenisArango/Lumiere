@@ -146,6 +146,11 @@ La fundación (schema completo de BD, contratos de API, sistema de diseño) se c
 - [x] `/promotions/validate` para verificar un código antes de pagar
 - [x] **Integrado de vuelta al motor de reservas**: `createOrder` acepta `promotionCode` y aplica el descuento real — verificado end-to-end (20% sobre 200 = descuento de 40, total 160)
 
-**60/60 tests de integración pasan contra Postgres/Redis reales** (11 auth + 16 catálogo + 8 cines/salas + 7 funciones + 11 reservas + 7 promociones). Probado manualmente contra el servidor real.
+**Fase 8 — Opiniones** (RF-06): completa y verificada ([docs/backend/07-opiniones.md](docs/backend/07-opiniones.md))
+- [x] Reseñas verificadas (`isVerifiedPurchase` calculado server-side contra órdenes `PAID` reales)
+- [x] `averageRating`/`reviewCount` en el detalle de película, moderación (`isApproved`) restringida a staff
+- [x] Probado el cálculo de "compra verificada" simulando una orden `PAID` directo vía Prisma (documentado como simulación honesta hasta que exista el módulo de Pagos)
 
-**Siguiente módulo**: Pagos (Stripe + PayPal) — **requiere que el usuario provea credenciales sandbox** (`STRIPE_SECRET_KEY`, `PAYPAL_CLIENT_ID`/`PAYPAL_CLIENT_SECRET`) para verificación end-to-end real; se puede construir y probar unitariamente sin ellas.
+**70/70 tests de integración pasan contra Postgres/Redis reales** (11 auth + 16 catálogo + 8 cines/salas + 7 funciones + 11 reservas + 7 promociones + 10 opiniones). Probado manualmente contra el servidor real.
+
+**Siguiente módulo**: Pagos (Stripe + PayPal) — **requiere que el usuario provea credenciales sandbox** (`STRIPE_SECRET_KEY`, `PAYPAL_CLIENT_ID`/`PAYPAL_CLIENT_SECRET`) para verificación end-to-end real; se puede construir y probar unitariamente sin ellas. Después de Pagos, solo falta Reportería (RF-08) para completar el alcance funcional del enunciado original.

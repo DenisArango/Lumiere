@@ -7,6 +7,7 @@ import type {
   ListMoviesQuery,
   UpdateMovieInput,
 } from "@/modules/movies/movie.schema";
+import { getMovieRatingSummary } from "@/modules/reviews/review.service";
 
 const listInclude = {
   rating: true,
@@ -58,6 +59,8 @@ export async function getMovieById(id: string) {
   }
 
   const { genres, credits, ...rest } = movie;
+  const ratingSummary = await getMovieRatingSummary(id);
+
   return {
     ...rest,
     genres: genres.map((g) => g.genre),
@@ -65,6 +68,7 @@ export async function getMovieById(id: string) {
     cast: credits
       .filter((c) => c.creditRole === "ACTOR")
       .map((c) => ({ ...c.person, characterName: c.characterName })),
+    ...ratingSummary,
   };
 }
 
