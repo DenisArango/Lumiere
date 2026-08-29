@@ -5,12 +5,13 @@ import { Film } from "lucide-react";
 import type { MovieSummary } from "@/features/movies/movies.types";
 
 /**
- * Spotlight que sigue el cursor sobre el poster (ver docs/00-brand-lumiere.md
- * seccion 5) - un gradiente radial posicionado con variables CSS, no una
- * libreria aparte. layoutId comparte la animacion del poster con la pagina
- * de detalle (transicion "shared element" de Framer Motion / motion).
+ * Tarjeta estilo stub de boleto: poster a sangre completa, linea de
+ * perforacion, y el titulo debajo (no superpuesto en degradado sobre la
+ * imagen - ese overlay es un patron muy comun de "tarjeta generica de app").
+ * Spotlight que sigue el cursor (ver docs/00-brand-lumiere.md) + layoutId
+ * compartido con la pagina de detalle.
  */
-export function MovieCard({ movie }: { movie: MovieSummary }) {
+export function MovieCard({ movie, index }: { movie: MovieSummary; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
 
   function handleMouseMove(e: MouseEvent<HTMLDivElement>) {
@@ -26,38 +27,48 @@ export function MovieCard({ movie }: { movie: MovieSummary }) {
       <motion.div
         ref={ref}
         onMouseMove={handleMouseMove}
-        whileHover={{ scale: 1.03 }}
+        whileHover={{ y: -4 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        className="relative aspect-2/3 overflow-hidden rounded-lg border border-hairline bg-surface"
+        className="border border-hairline bg-surface"
       >
-        <div
-          className="pointer-events-none absolute inset-0 z-10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-          style={{
-            background:
-              "radial-gradient(280px circle at var(--x, 50%) var(--y, 50%), color-mix(in srgb, var(--lumiere-accent-gold) 25%, transparent), transparent 70%)",
-          }}
-        />
-        {movie.posterUrl ? (
-          <motion.img
-            layoutId={`poster-${movie.id}`}
-            src={movie.posterUrl}
-            alt={`Póster de ${movie.title}`}
-            className="size-full object-cover"
-            loading="lazy"
+        <div className="relative aspect-2/3 overflow-hidden">
+          <div
+            className="pointer-events-none absolute inset-0 z-10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+            style={{
+              background:
+                "radial-gradient(280px circle at var(--x, 50%) var(--y, 50%), color-mix(in srgb, var(--lumiere-accent-gold) 25%, transparent), transparent 70%)",
+            }}
           />
-        ) : (
-          <motion.div
-            layoutId={`poster-${movie.id}`}
-            className="flex size-full items-center justify-center bg-elevated text-ink-muted"
-          >
-            <Film className="size-10" />
-          </motion.div>
-        )}
-        <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3 pt-10">
-          <p className="line-clamp-2 font-display text-sm font-medium text-white">{movie.title}</p>
-          <p className="mt-1 text-xs text-white/70">
+          <span className="reel-index absolute left-2 top-2 z-10 text-sm text-white/80" style={{ textShadow: "0 1px 4px rgb(0 0 0 / 0.6)" }}>
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          {movie.posterUrl ? (
+            <motion.img
+              layoutId={`poster-${movie.id}`}
+              src={movie.posterUrl}
+              alt={`Póster de ${movie.title}`}
+              className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : (
+            <motion.div layoutId={`poster-${movie.id}`} className="flex size-full items-center justify-center bg-elevated text-ink-muted">
+              <Film className="size-10" />
+            </motion.div>
+          )}
+        </div>
+
+        {/* linea de perforacion tipo stub de boleto */}
+        <div
+          className="h-0 border-t border-dashed border-hairline"
+          style={{ backgroundImage: "none" }}
+          aria-hidden
+        />
+
+        <div className="px-3 py-2.5">
+          <p className="eyebrow">
             {movie.rating.code} · {movie.durationMinutes} min
           </p>
+          <p className="mt-1 line-clamp-2 font-display text-base italic leading-snug text-ink">{movie.title}</p>
         </div>
       </motion.div>
     </Link>

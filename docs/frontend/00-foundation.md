@@ -49,6 +49,22 @@
 4. **Sin datos de películas/cines de ejemplo sembrados automáticamente** — la base de datos de desarrollo solo tiene los datos de referencia del seed original (géneros, idiomas, clasificaciones, tipos de butaca). La cartelera aparecerá vacía hasta que se cree contenido real vía la API administrativa (o un futuro panel de administración) — se decidió no ensuciar la base de datos del usuario con películas falsas sin que lo pidiera explícitamente.
 5. **Bundle sin code-splitting todavía** (699 KB / 220 KB gzip, advertencia de Vite en el build) — aceptable para esta fase; la optimización natural (rutas con `React.lazy`) se hace cuando haya más páginas y el bundle crezca más, no prematuramente.
 
+## Addendum: pase de rediseño (composición editorial, no plantilla genérica)
+
+Tras la primera versión, feedback directo del usuario: la paleta de colores estaba bien, pero la **composición** se sentía como "cualquier trabajo con IA" — genérica, sin identidad propia. El problema no eran los tokens de marca, era la estructura: hero centrado con blob de gradiente, header con `backdrop-blur` y pills espaciadas uniformemente, grid de tarjetas `rounded-lg` idénticas con overlay de degradado sobre la imagen — patrones reconocibles de plantilla SaaS genérica, independientemente del color usado encima.
+
+Cambios estructurales (no solo cosméticos):
+- **Radios de borde recortados globalmente** (`--radius-lg`, etc. redefinidos en `@theme`) — toda la app pasa de sentirse "burbujeante" a más impresa/editorial sin tocar cada componente.
+- **Grano de película** (`body::before` con `feTurbulence` vía SVG data-URI, opacity 0.05, `mix-blend-mode: overlay`) — textura sutil que ninguna plantilla genérica de IA incluye por defecto.
+- **Header**: de barra flotante translúcida con pills a masthead sólido con hairline dorado en degradado y nav en mayúsculas tracked-out con subrayado que crece en hover (convención de créditos de cine, no de SaaS).
+- **Home**: de hero centrado con blob de gradiente a una **marquesina** (`Marquee`) — la película destacada a sangre completa con el título apoyado abajo-izquierda sobre la imagen, como una entrada de cine real. Si no hay películas en cartelera, un `BrandIntro` distinto (no un estado vacío disfrazado de hero).
+- **Tarjeta de película**: de overlay con degradado negro sobre la imagen (patrón muy común de "tarjeta genérica") a un **stub de boleto** — póster a sangre completa, línea de perforación punteada, texto debajo con número de índice tipo contador de rollo de película (`01`, `02`...) y etiqueta *eyebrow* tracked-uppercase.
+- **Sistema tipográfico repetido en todas las páginas**: clase `.eyebrow` (créditos de cine: "DIRIGIDA POR", "REPARTO", "UBICACIONES") + títulos en Fraunces itálica — reemplaza los `<h2>` genéricos sin personalidad.
+
+Ver memoria de sesión `feedback_ui_generic_ai_look` para el criterio general (aplica a este proyecto y a trabajo de frontend futuro): después de implementar la versión "obviamente correcta" (colores, componentes, datos correctos), hacer una segunda pasada explícita preguntando si la *composición* tiene estructura distintiva o si solo se le puso tema a una plantilla genérica.
+
+Verificado de nuevo tras el rediseño: `tsc -b` sin errores, `oxlint` limpio (mismos 2 warnings benignos previos), `vite build` — 2432 módulos sin error.
+
 ## Deuda técnica / pendiente
 
 1. **Verificación visual real — el pendiente más importante de este módulo** (ver arriba). Instrucciones para el usuario: `pnpm dev:backend` en una terminal, `pnpm dev:frontend` en otra, abrir `http://localhost:5173`.

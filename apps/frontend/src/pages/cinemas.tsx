@@ -7,8 +7,9 @@ export function CinemasPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-      <h1 className="font-display text-3xl italic text-ink">Nuestros cines</h1>
-      <p className="mt-1 text-ink-muted">Encuentra la sala más cercana a ti.</p>
+      <p className="eyebrow">Ubicaciones</p>
+      <h1 className="mt-1 font-display text-3xl italic text-ink">Nuestros cines</h1>
+      <p className="mt-1 text-sm text-ink-muted">Encuentra la sala más cercana a ti.</p>
 
       {isLoading && <p className="mt-8 text-ink-muted">Cargando…</p>}
       {isError && <p className="mt-8 text-danger">No pudimos cargar los cines.</p>}

@@ -23,6 +23,16 @@
 
   --font-display: "Fraunces", Georgia, "Times New Roman", serif;
   --font-sans: "Inter", -apple-system, "Segoe UI", sans-serif;
+
+  /*
+   * Radios mas contenidos que el default de Tailwind: la app debe leerse
+   * como una publicacion/afiche de cine, no como un dashboard SaaS generico
+   * de esquinas muy redondeadas - ver memoria de feedback sobre composicion.
+   */
+  --radius-sm: 0.0625rem;
+  --radius-md: 0.125rem;
+  --radius-lg: 0.1875rem;
+  --radius-xl: 0.25rem;
 }
 
 /* Modo oscuro: identidad por defecto de la marca (ver docs/00-brand-lumiere.md). */
@@ -103,6 +113,22 @@
     font-family: var(--font-display);
   }
 
+  /*
+   * Grano de pelicula: textura fija de muy baja opacidad sobre toda la app.
+   * Es lo que separa una superficie "flat UI generica" de un afiche/pantalla
+   * de proyeccion real - un detalle deliberadamente no-digital-perfecto.
+   */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -114,3 +140,24 @@
     }
   }
 }
+
+@layer components {
+  /* Etiqueta pequeña tracked-uppercase tipo credito de pelicula ("DIRIGIDA POR"). */
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--lumiere-accent-gold);
+  }
+
+  /* Numero de indice estilo contador de rollo de pelicula (01, 02, 03...). */
+  .reel-index {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-variant-numeric: tabular-nums;
+    color: var(--lumiere-text-secondary);
+  }
+}
+

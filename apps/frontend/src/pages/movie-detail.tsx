@@ -45,15 +45,19 @@ export function MovieDetailPage() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-            <div className="flex flex-wrap gap-2">
+            <p className="eyebrow">
+              {movie.releaseYear} · {movie.countryOfOrigin}
+            </p>
+
+            <h1 className="mt-2 font-display text-3xl italic text-ink sm:text-4xl">{movie.title}</h1>
+
+            <div className="mt-3 flex flex-wrap gap-2">
               {movie.genres.map((g) => (
-                <span key={g.id} className="rounded-full border border-hairline px-2.5 py-0.5 text-xs text-ink-muted">
+                <span key={g.id} className="border border-hairline px-2.5 py-0.5 text-xs text-ink-muted">
                   {g.name}
                 </span>
               ))}
             </div>
-
-            <h1 className="mt-3 font-display text-3xl italic text-ink sm:text-4xl">{movie.title}</h1>
             {movie.originalTitle && movie.originalTitle !== movie.title && (
               <p className="mt-1 text-sm text-ink-muted">Título original: {movie.originalTitle}</p>
             )}
@@ -87,17 +91,17 @@ export function MovieDetailPage() {
 
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         {movie.directors.length > 0 && (
-          <div className="mb-8">
-            <h2 className="font-display text-lg text-ink">Dirección</h2>
-            <p className="mt-2 text-sm text-ink-muted">
+          <div className="mb-8 border-t border-hairline pt-6">
+            <p className="eyebrow">Dirigida por</p>
+            <p className="mt-2 font-display text-lg italic text-ink">
               {movie.directors.map((d) => `${d.firstName} ${d.lastName}`).join(", ")}
             </p>
           </div>
         )}
 
         {movie.cast.length > 0 && (
-          <div>
-            <h2 className="font-display text-lg text-ink">Reparto</h2>
+          <div className="border-t border-hairline pt-6">
+            <p className="eyebrow">Reparto</p>
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-muted">
               {movie.cast.map((actor) => (
                 <span key={actor.id}>

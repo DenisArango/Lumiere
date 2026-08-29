@@ -36,7 +36,8 @@ export function LoginPage() {
     <div className="mx-auto flex min-h-[70vh] max-w-md items-center px-4 py-12 sm:px-6">
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Inicia sesión</CardTitle>
+          <p className="eyebrow">Bienvenida de vuelta</p>
+          <CardTitle className="italic">Inicia sesión</CardTitle>
           <CardDescription>Accede a tu cuenta para reservar tu próxima función.</CardDescription>
         </CardHeader>
         <CardContent>

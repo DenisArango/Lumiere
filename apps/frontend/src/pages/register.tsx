@@ -36,8 +36,9 @@ export function RegisterPage() {
     <div className="mx-auto flex min-h-[70vh] max-w-md items-center px-4 py-12 sm:px-6">
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Crea tu cuenta</CardTitle>
-          <CardDescription>Únete para reservar boletos y guardar tus películas favoritas.</CardDescription>
+          <p className="eyebrow">Únete a Lumière</p>
+          <CardTitle className="italic">Crea tu cuenta</CardTitle>
+          <CardDescription>Reserva boletos y guarda tus películas favoritas.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
