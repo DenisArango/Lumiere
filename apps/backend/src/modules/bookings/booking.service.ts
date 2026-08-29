@@ -34,6 +34,36 @@ export async function sweepExpiredLocks(showtimeId: string): Promise<void> {
   emitSeatEvent(showtimeId, "seat:released", { seatIds: expired.map((s) => s.id), reason: "expired" });
 }
 
+/**
+ * Mapa de butacas de una funcion: combina el layout fisico de la sala
+ * (fila, numero, tipo de butaca) con el estado especifico de ESA funcion
+ * (AVAILABLE/LOCKED/SOLD) - ver docs/04-modelo-datos.md seccion 3 sobre por
+ * que ShowtimeSeat es una entidad separada de Seat. Lectura publica: no
+ * revela quien tiene bloqueada una butaca, solo que esta ocupada.
+ */
+export async function getSeatMap(showtimeId: string) {
+  await sweepExpiredLocks(showtimeId);
+
+  const showtime = await prisma.showtime.findUnique({ where: { id: showtimeId } });
+  if (!showtime) {
+    throw new NotFoundError("Función");
+  }
+
+  const showtimeSeats = await prisma.showtimeSeat.findMany({
+    where: { showtimeId },
+    include: { seat: { include: { seatType: true } } },
+    orderBy: [{ seat: { rowLabel: "asc" } }, { seat: { seatNumber: "asc" } }],
+  });
+
+  return showtimeSeats.map((s) => ({
+    id: s.id,
+    rowLabel: s.seat.rowLabel,
+    seatNumber: s.seat.seatNumber,
+    seatType: s.seat.seatType,
+    status: s.status,
+  }));
+}
+
 export async function lockSeats(showtimeId: string, seatIds: string[], userId: string) {
   await sweepExpiredLocks(showtimeId);
 

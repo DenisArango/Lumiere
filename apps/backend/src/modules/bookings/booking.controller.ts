@@ -9,6 +9,11 @@ import type { Pagination } from "@/utils/pagination";
 
 const STAFF_ROLES = new Set(["SUPER_ADMIN", "CINEMA_MANAGER", "BOX_OFFICE"]);
 
+export async function getSeatMap(req: Request, res: Response): Promise<void> {
+  const seats = await bookingService.getSeatMap(req.params.showtimeId as string);
+  res.status(200).json({ seats });
+}
+
 export async function lockSeats(req: Request, res: Response): Promise<void> {
   const { seatIds } = req.body as LockSeatsInput;
   const result = await bookingService.lockSeats(req.params.showtimeId as string, seatIds, req.user!.id);

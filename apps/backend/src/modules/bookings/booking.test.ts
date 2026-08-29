@@ -139,6 +139,20 @@ afterAll(async () => {
   await redis.quit().catch(() => undefined);
 });
 
+describe("Mapa de butacas", () => {
+  it("es publico y refleja el estado real de cada butaca", async () => {
+    const res = await request(app).get(`/api/v1/showtimes/${showtimeId}/seats`);
+    expect(res.status).toBe(200);
+    expect(res.body.seats).toHaveLength(4);
+    expect(res.body.seats.every((s: { status: string }) => s.status === "AVAILABLE")).toBe(true);
+  });
+
+  it("404 en función inexistente", async () => {
+    const res = await request(app).get("/api/v1/showtimes/00000000-0000-0000-0000-000000000000/seats");
+    expect(res.status).toBe(404);
+  });
+});
+
 describe("Bloqueo de butacas", () => {
   it("rechaza bloquear sin autenticación", async () => {
     const res = await request(app)
@@ -156,6 +170,12 @@ describe("Bloqueo de butacas", () => {
     expect(res.status).toBe(200);
     expect(res.body.seatIds).toEqual([seatIds[0]]);
     expect(res.body.lockExpiresAt).toBeDefined();
+  });
+
+  it("el mapa de butacas refleja el bloqueo inmediatamente", async () => {
+    const res = await request(app).get(`/api/v1/showtimes/${showtimeId}/seats`);
+    const lockedSeat = res.body.seats.find((s: { id: string }) => s.id === seatIds[0]);
+    expect(lockedSeat.status).toBe("LOCKED");
   });
 
   it("usuario B no puede bloquear la misma butaca que ya bloqueó A", async () => {

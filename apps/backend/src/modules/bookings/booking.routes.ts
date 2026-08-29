@@ -14,6 +14,8 @@ import * as bookingController from "@/modules/bookings/booking.controller";
 /** Montado en /api/v1/showtimes junto al showtimeRouter. */
 export const showtimeSeatRouter = Router();
 
+showtimeSeatRouter.get("/:showtimeId/seats", catchAsync(bookingController.getSeatMap));
+
 showtimeSeatRouter.post(
   "/:showtimeId/seats/lock",
   authenticate,
