@@ -168,4 +168,12 @@ La fundación (schema completo de BD, contratos de API, sistema de diseño) se c
 
 RF-07 (venta en línea) queda 100% cerrado en cuanto a lógica de negocio — solo falta la verificación contra proveedores reales cuando el usuario tenga las credenciales.
 
-**Siguiente paso**: Frontend (React + Vite + TypeScript) — todo el backend está construido, probado y documentado.
+**Fase 11 — Frontend, fundación + primera vertical**: construida, verificada por build/lint ([docs/frontend/00-foundation.md](docs/frontend/00-foundation.md))
+- [x] Stack completo instalado y funcionando: React 19 + Vite 8 + TypeScript 6 + Tailwind v4 + shadcn/ui (patrón) + motion (Framer Motion) + React Router + Zustand + TanStack Query + React Hook Form/Zod
+- [x] Identidad de marca real (no solo documentada): paleta clara/oscura exacta, modo oscuro por defecto, tipografía Fraunces/Inter, logo, spotlight en hover, transición de poster compartida
+- [x] Páginas funcionales conectadas a la API real: Cartelera, Detalle de película, Funciones, Cines, Login/Registro
+- [x] Cliente HTTP con refresco automático de sesión (401 → refresh → reintento) y CSRF
+- [x] `npx vite build` — 2432 módulos, sin errores; `tsc -b` y `oxlint` limpios
+- [ ] **Verificación visual en navegador pendiente — requiere que el usuario abra `pnpm dev:frontend` y navegue la app** (sin herramienta de automatización de navegador en esta sesión)
+
+**Siguiente módulo de frontend**: motor de reservas (mapa de butacas + checkout Stripe/PayPal) — pendiente hasta la próxima sesión de trabajo.

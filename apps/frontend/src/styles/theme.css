@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+/*
+ * Tokens de marca Lumiere - ver docs/00-brand-lumiere.md.
+ * Los tokens @theme le dicen a Tailwind que genere utilidades (bg-base,
+ * text-primary, etc.) que APUNTAN a variables CSS normales, no a valores
+ * fijos - eso es lo que permite que la MISMA clase utilitaria se vea
+ * distinta en modo claro/oscuro sin duplicar componentes.
+ */
+@theme {
+  --color-base: var(--lumiere-bg-base);
+  --color-surface: var(--lumiere-bg-surface);
+  --color-elevated: var(--lumiere-bg-elevated);
+  --color-gold: var(--lumiere-accent-gold);
+  --color-gold-bright: var(--lumiere-accent-gold-bright);
+  --color-crimson: var(--lumiere-accent-crimson);
+  --color-ink: var(--lumiere-text-primary);
+  --color-ink-muted: var(--lumiere-text-secondary);
+  --color-hairline: var(--lumiere-border);
+  --color-success: var(--lumiere-success);
+  --color-warning: var(--lumiere-warning);
+  --color-danger: var(--lumiere-danger);
+
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Modo oscuro: identidad por defecto de la marca (ver docs/00-brand-lumiere.md). */
+:root {
+  --lumiere-bg-base: #0b0b0f;
+  --lumiere-bg-surface: #15151c;
+  --lumiere-bg-elevated: #1e1e27;
+  --lumiere-accent-gold: #d4a94e;
+  --lumiere-accent-gold-bright: #e8c670;
+  --lumiere-accent-crimson: #8c1f2f;
+  --lumiere-text-primary: #f5f1e8;
+  --lumiere-text-secondary: #a8a6b0;
+  --lumiere-border: #2a2a35;
+  --lumiere-success: #4e9c6a;
+  --lumiere-warning: #d4a94e;
+  --lumiere-danger: #c24b4b;
+  color-scheme: dark;
+}
+
+/* Modo claro explicito (toggle del usuario). */
+:root[data-theme="light"] {
+  --lumiere-bg-base: #faf6ec;
+  --lumiere-bg-surface: #ffffff;
+  --lumiere-bg-elevated: #ffffff;
+  --lumiere-accent-gold: #b8862f;
+  --lumiere-accent-gold-bright: #96701f;
+  --lumiere-accent-crimson: #7a1b29;
+  --lumiere-text-primary: #1a1a1f;
+  --lumiere-text-secondary: #5c5a66;
+  --lumiere-border: #e4dfd0;
+  --lumiere-success: #2f7a4d;
+  --lumiere-warning: #b8862f;
+  --lumiere-danger: #a83a3a;
+  color-scheme: light;
+}
+
+/* Preferencia "sistema": si el SO pide claro y el usuario no forzo oscuro explicitamente. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]):not([data-theme="light"]) {
+    --lumiere-bg-base: #faf6ec;
+    --lumiere-bg-surface: #ffffff;
+    --lumiere-bg-elevated: #ffffff;
+    --lumiere-accent-gold: #b8862f;
+    --lumiere-accent-gold-bright: #96701f;
+    --lumiere-accent-crimson: #7a1b29;
+    --lumiere-text-primary: #1a1a1f;
+    --lumiere-text-secondary: #5c5a66;
+    --lumiere-border: #e4dfd0;
+    --lumiere-success: #2f7a4d;
+    --lumiere-warning: #b8862f;
+    --lumiere-danger: #a83a3a;
+    color-scheme: light;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--lumiere-border);
+  }
+
+  html {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    background-color: var(--lumiere-bg-base);
+    color: var(--lumiere-text-primary);
+    font-variant-numeric: tabular-nums;
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
