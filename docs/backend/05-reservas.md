@@ -8,6 +8,7 @@ Cubre el núcleo de RF-07 ("Venta en línea: Selección de asientos") sin el pro
 
 | Endpoint | Método | Protección | Descripción |
 |---|---|---|---|
+| `/api/v1/showtimes/:showtimeId/seats` | GET | público | Mapa de butacas: layout físico + estado actual (`AVAILABLE`/`LOCKED`/`SOLD`) por función. Agregado tras detectar el vacío al construir el frontend — ver [docs/frontend/01-reservas.md](../frontend/01-reservas.md) |
 | `/api/v1/showtimes/:showtimeId/seats/lock` | POST | autenticado | Bloquea hasta 10 butacas para el usuario actual (TTL configurable, `SEAT_LOCK_TTL_SECONDS`) |
 | `/api/v1/showtimes/:showtimeId/seats/release` | POST | autenticado | Libera butacas bloqueadas por el usuario actual |
 | `/api/v1/orders` | POST | autenticado | Crea una orden `PENDING` a partir de butacas ya bloqueadas (+ combos opcionales) |

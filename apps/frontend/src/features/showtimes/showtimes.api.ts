@@ -6,3 +6,8 @@ export async function fetchShowtimes(params: ListShowtimesParams): Promise<Pagin
   const { data } = await apiClient.get<PaginatedResult<Showtime>>("/showtimes", { params });
   return data;
 }
+
+export async function fetchShowtimeById(id: string): Promise<Showtime> {
+  const { data } = await apiClient.get<{ showtime: Showtime }>(`/showtimes/${id}`);
+  return data.showtime;
+}

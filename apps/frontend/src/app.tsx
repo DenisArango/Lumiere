@@ -4,6 +4,10 @@ import { RootLayout } from "@/components/layout/root-layout";
 import { HomePage } from "@/pages/home";
 import { MovieDetailPage } from "@/pages/movie-detail";
 import { ShowtimesPage } from "@/pages/showtimes";
+import { SeatSelectionPage } from "@/pages/seat-selection";
+import { CheckoutPage } from "@/pages/checkout";
+import { ConfirmationPage } from "@/pages/confirmation";
+import { MyOrdersPage } from "@/pages/my-orders";
 import { CinemasPage } from "@/pages/cinemas";
 import { LoginPage } from "@/pages/login";
 import { RegisterPage } from "@/pages/register";
@@ -36,12 +40,28 @@ export function App() {
         <Route path="cines" element={<CinemasPage />} />
         <Route path="iniciar-sesion" element={<LoginPage />} />
         <Route path="registro" element={<RegisterPage />} />
-        <Route path="funciones/:id/asientos" element={<WipPage title="Selección de asientos" />} />
+        <Route path="funciones/:id/asientos" element={<SeatSelectionPage />} />
+        <Route
+          path="checkout"
+          element={
+            <ProtectedRoute>
+              <CheckoutPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="confirmacion"
+          element={
+            <ProtectedRoute>
+              <ConfirmationPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="mis-ordenes"
           element={
             <ProtectedRoute>
-              <WipPage title="Mis boletos" />
+              <MyOrdersPage />
             </ProtectedRoute>
           }
         />

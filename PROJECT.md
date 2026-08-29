@@ -168,12 +168,20 @@ La fundación (schema completo de BD, contratos de API, sistema de diseño) se c
 
 RF-07 (venta en línea) queda 100% cerrado en cuanto a lógica de negocio — solo falta la verificación contra proveedores reales cuando el usuario tenga las credenciales.
 
-**Fase 11 — Frontend, fundación + primera vertical**: construida, verificada por build/lint ([docs/frontend/00-foundation.md](docs/frontend/00-foundation.md))
+**Fase 11 — Frontend, fundación + primera vertical**: construida ([docs/frontend/00-foundation.md](docs/frontend/00-foundation.md))
 - [x] Stack completo instalado y funcionando: React 19 + Vite 8 + TypeScript 6 + Tailwind v4 + shadcn/ui (patrón) + motion (Framer Motion) + React Router + Zustand + TanStack Query + React Hook Form/Zod
-- [x] Identidad de marca real (no solo documentada): paleta clara/oscura exacta, modo oscuro por defecto, tipografía Fraunces/Inter, logo, spotlight en hover, transición de poster compartida
 - [x] Páginas funcionales conectadas a la API real: Cartelera, Detalle de película, Funciones, Cines, Login/Registro
 - [x] Cliente HTTP con refresco automático de sesión (401 → refresh → reintento) y CSRF
-- [x] `npx vite build` — 2432 módulos, sin errores; `tsc -b` y `oxlint` limpios
-- [ ] **Verificación visual en navegador pendiente — requiere que el usuario abra `pnpm dev:frontend` y navegue la app** (sin herramienta de automatización de navegador en esta sesión)
+- [x] **Rediseño de composición** tras feedback del usuario (la primera versión "se sentía como cualquier trabajo con IA" pese a tener los colores correctos) — de patrones de plantilla SaaS genérica (hero centrado, backdrop-blur, cards rounded-lg con overlay) a composición editorial de cine (marquesina, stub de boleto, grano de película, tipografía tipo créditos) — ver memoria de sesión `feedback_ui_generic_ai_look`
 
-**Siguiente módulo de frontend**: motor de reservas (mapa de butacas + checkout Stripe/PayPal) — pendiente hasta la próxima sesión de trabajo.
+**Fase 12 — Frontend, motor de reservas**: construido y verificado end-to-end real contra el backend real ([docs/frontend/01-reservas.md](docs/frontend/01-reservas.md))
+- [x] Mapa de butacas en vivo (Socket.io: todos los clientes viendo la misma función ven los cambios de otros en tiempo real)
+- [x] Flujo completo: selección → bloqueo → orden → checkout → pago → confirmación con QR real, + historial de boletos
+- [x] **Segundo bug real encontrado y corregido**: una excepción del SDK de Stripe (no cubierta por el gateway simulado de los tests) se propagaba como `500` crudo — corregido a un `402` claro que preserva la reserva, verificado con `curl` real
+- [x] Backend: se agregó `GET /showtimes/:id/seats` (mapa de butacas con estado real) — vacío detectado al construir esta pantalla
+
+**86/86 tests de backend pasan.** `tsc -b`, `oxlint` y `vite build` del frontend limpios (2471 módulos).
+
+**Verificación visual en navegador — sigue pendiente** (sin herramienta de automatización de navegador en esta sesión). Requiere que el usuario abra `pnpm dev:backend` + `pnpm dev:frontend` y navegue la app.
+
+**Siguiente módulo de frontend**: Panel de administración (catálogo, cines/salas, funciones, promociones, reportería) — todo listo del lado del backend, sin interfaz todavía.

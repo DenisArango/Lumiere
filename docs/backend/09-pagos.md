@@ -35,6 +35,12 @@ El primer intento de `payOrder` hacía `prisma.payment.create()` tanto en el cam
 
 Este es exactamente el tipo de bug que un test de integración real (contra base de datos real, no mocks de Prisma) atrapa y una suite de "el endpoint responde 200" no atraparía — el escenario de fallo-y-reintento no es el camino feliz obvio.
 
+### Segundo bug real, encontrado al construir el frontend (ver docs/frontend/01-reservas.md)
+
+El SDK de Stripe **lanza una excepción** (no devuelve un `status` fallido) ante una clave de API inválida u otros errores de red/proveedor. Como el gateway simulado de los tests (`MockGateway`) nunca lanza — siempre devuelve `{status: "FAILED"}` de forma controlada — este camino nunca se ejercitó en la suite de Jest. Al probar el flujo real vía `curl` contra el servidor real (con el `STRIPE_SECRET_KEY=sk_test_xxx` placeholder de `.env.example`), la excepción del SDK se propagó como un `500` crudo en vez de un error de pago manejado.
+
+**Fix**: `gateway.charge()` y `gateway.refund()` ahora están envueltos en `try/catch` — cualquier excepción del SDK se trata igual que un cobro/reembolso rechazado (`402`/`502` con mensaje claro, `Payment` registrado con `status: FAILED`), nunca un `500`. Verificado con el mismo `curl` que expuso el bug. Lección: un gateway simulado prueba la orquestación correctamente, pero no sustituye probar al menos una vez el camino real de error del SDK — por eso este proyecto usa `curl` contra el servidor real como complemento a los tests de integración, no solo mocks.
+
 ## Decisiones de diseño
 
 1. **Flujo síncrono, no basado en webhooks** — coincide con el diagrama de secuencia ya documentado: el backend cobra y espera la respuesta en la misma request HTTP, no delega la confirmación a un webhook asíncrono. Es más simple de razonar y suficiente para tarjetas (el caso principal); métodos de pago que requieren confirmación asíncrona (ej. transferencias bancarias en algunos países) necesitarían el patrón de webhook — se deja fuera de alcance a propósito, ver deuda técnica.
@@ -47,8 +53,9 @@ Este es exactamente el tipo de bug que un test de integración real (contra base
 
 - [x] `npx tsc --noEmit` — sin errores (incluye la verificación de forma de API de ambos SDKs contra sus tipos reales).
 - [x] `npx eslint src --ext .ts` — sin errores.
-- [x] `npx jest` — **83/83 tests pasan** (todos los módulos anteriores + 8 de pagos).
+- [x] `npx jest` — **86/86 tests pasan** (todos los módulos anteriores + 8 de pagos + 2 de mapa de butacas).
 - [x] Prueba manual: el servidor real arranca sin errores **sin** `STRIPE_SECRET_KEY`/`PAYPAL_CLIENT_ID` configurados (instanciación perezosa) — importante porque significa que el resto de la aplicación no se rompe por la ausencia de credenciales que no siempre van a estar disponibles en cada entorno de desarrollo.
+- [x] **Flujo real vía `curl` contra el servidor real** (login → bloquear butaca → crear orden → intentar pagar con la clave placeholder del `.env`): expuso y verificó la corrección del segundo bug (arriba) — el pago falla con `402` claro, la butaca permanece `LOCKED`, nada se pierde.
 - [ ] **Verificación end-to-end contra Stripe/PayPal sandbox reales — pendiente**, requiere las credenciales del usuario.
 
 ## Deuda técnica / pendiente

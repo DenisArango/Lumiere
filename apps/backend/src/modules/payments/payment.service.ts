@@ -38,11 +38,29 @@ export async function payOrder(
   }
 
   const gateway = paymentGateways[provider];
-  const chargeResult = await gateway.charge({
-    amount: Number(order.totalAmount),
-    currency: "USD",
-    source,
-  });
+  let chargeResult;
+  try {
+    chargeResult = await gateway.charge({
+      amount: Number(order.totalAmount),
+      currency: "USD",
+      source,
+    });
+  } catch (err) {
+    // El SDK del proveedor lanza (no devuelve un status) ante clave
+    // invalida, timeout de red, etc. - se trata igual que un cobro
+    // rechazado (402), nunca se deja escapar como un 500 crudo que
+    // filtraria el error interno del proveedor al cliente.
+    logger.error({ orderId, provider, err }, "Error del proveedor de pago al cobrar");
+    await prisma.payment.upsert({
+      where: { orderId },
+      create: { orderId, provider, providerPaymentId: `error_${Date.now()}`, amount: order.totalAmount, status: "FAILED" },
+      update: { provider, status: "FAILED" },
+    });
+    throw new AppError(
+      "No pudimos comunicarnos con el proveedor de pago. Tus butacas siguen reservadas, intenta de nuevo.",
+      402,
+    );
+  }
 
   if (chargeResult.status !== "COMPLETED") {
     // upsert, no create: Payment.orderId es unico (un registro de pago por
@@ -125,7 +143,13 @@ export async function refundOrder(orderId: string, userId: string, isStaff: bool
   }
 
   const gateway = paymentGateways[order.payment.provider];
-  const refundResult = await gateway.refund(order.payment.providerPaymentId, Number(order.payment.amount));
+  let refundResult;
+  try {
+    refundResult = await gateway.refund(order.payment.providerPaymentId, Number(order.payment.amount));
+  } catch (err) {
+    logger.error({ orderId, err }, "Error del proveedor de pago al reembolsar");
+    throw new AppError("No pudimos comunicarnos con el proveedor de pago para el reembolso", 502);
+  }
 
   if (refundResult.status !== "COMPLETED") {
     throw new AppError("El reembolso no pudo procesarse con el proveedor de pago", 502);
