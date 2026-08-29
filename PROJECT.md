@@ -216,4 +216,12 @@ RF-07 (venta en línea) queda 100% cerrado en cuanto a lógica de negocio — so
 
 **94/94 tests de backend pasan.**
 
+**Fase 17-18 — Validación de boletos (taquilla)**: construida y verificada end-to-end real ([docs/backend/10-validacion-boletos.md](docs/backend/10-validacion-boletos.md), [docs/frontend/06-taquilla.md](docs/frontend/06-taquilla.md))
+- [x] Vacío real y significativo cerrado: el código QR se generaba y mostraba al cliente pero **no existía forma de validarlo** — el valor agregado "reemplaza validación manual de boletos" era decorativo hasta ahora
+- [x] Backend: `POST /tickets/validate` (nuevo campo `Order.checkedInAt`, migración aplicada), canje de un solo uso — 100/100 tests
+- [x] Frontend: `/taquilla`, primera pantalla real para el rol `BOX_OFFICE` (existía en el modelo desde el inicio sin ningún caso de uso), diseñada para escaneo continuo
+- [x] Verificado con flujo completo vía `curl`: validar boleto pagado (`200`) → reintentar el mismo código (`409`, boleto de un solo uso)
+
+**100/100 tests de backend pasan.**
+
 **Siguiente paso**: edición/borrado en el panel, verificación de Pagos contra Stripe/PayPal sandbox reales cuando el usuario tenga credenciales.

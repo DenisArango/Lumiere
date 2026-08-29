@@ -88,13 +88,23 @@ export function Header() {
                       <Ticket className="size-4" /> Mis boletos
                     </Link>
                   </DropdownMenu.Item>
-                  {user.role !== "CUSTOMER" && (
+                  {(user.role === "SUPER_ADMIN" || user.role === "CINEMA_MANAGER") && (
                     <DropdownMenu.Item asChild>
                       <Link
                         to="/admin"
                         className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm text-ink outline-none hover:bg-surface"
                       >
                         Panel de gestión
+                      </Link>
+                    </DropdownMenu.Item>
+                  )}
+                  {user.role === "BOX_OFFICE" && (
+                    <DropdownMenu.Item asChild>
+                      <Link
+                        to="/taquilla"
+                        className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm text-ink outline-none hover:bg-surface"
+                      >
+                        Taquilla
                       </Link>
                     </DropdownMenu.Item>
                   )}

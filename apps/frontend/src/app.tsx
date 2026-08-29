@@ -12,6 +12,7 @@ import { CinemasPage } from "@/pages/cinemas";
 import { LoginPage } from "@/pages/login";
 import { RegisterPage } from "@/pages/register";
 import { WipPage } from "@/pages/wip";
+import { BoxOfficePage } from "@/pages/box-office";
 import { useAuthStore } from "@/features/auth/auth.store";
 
 /**
@@ -84,6 +85,7 @@ export function App() {
         <Route path="iniciar-sesion" element={<LoginPage />} />
         <Route path="registro" element={<RegisterPage />} />
         <Route path="funciones/:id/asientos" element={<SeatSelectionPage />} />
+        <Route path="taquilla" element={<BoxOfficePage />} />
         <Route
           path="checkout"
           element={
