@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { Film, Star, Clock, Globe2 } from "lucide-react";
 import { useMovie } from "@/features/movies/movies.hooks";
 import { Button } from "@/components/ui/button";
+import { ReviewsSection } from "@/components/reviews-section";
 
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -112,6 +113,10 @@ export function MovieDetailPage() {
             </div>
           </div>
         )}
+
+        <div className="mt-8">
+          <ReviewsSection movieId={movie.id} />
+        </div>
       </div>
     </div>
   );

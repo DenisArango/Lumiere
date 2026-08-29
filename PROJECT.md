@@ -201,4 +201,11 @@ RF-07 (venta en línea) queda 100% cerrado en cuanto a lógica de negocio — so
 
 **Verificación visual en navegador — sigue pendiente** (sin herramienta de automatización de navegador en esta sesión). Requiere que el usuario abra `pnpm dev:backend` + `pnpm dev:frontend` y navegue la app.
 
-**Siguiente paso**: edición/borrado en el panel, verificación de Pagos contra Stripe/PayPal sandbox reales cuando el usuario tenga credenciales.
+**Fase 15 — Frontend, Opiniones**: construida y verificada end-to-end real ([docs/frontend/04-opiniones.md](docs/frontend/04-opiniones.md))
+- [x] Vacío real cerrado: RF-06 tenía backend completo desde hacía varias fases pero **cero representación en el frontend**
+- [x] Lista de reseñas + formulario (crear/editar/eliminar la propia) integrado en el detalle de película, con insignia de compra verificada
+- [x] Verificado con flujo completo vía `curl`: crear → listar → editar → eliminar, todos con el código esperado
+
+**Con esto, los 8 requerimientos funcionales del enunciado (RF-01 a RF-08) tienen representación completa en backend Y frontend.**
+
+**Siguiente paso**: módulo de combos de dulcería (vacío real: el backend nunca expuso gestión de `Product` pese a que `createOrder` ya acepta `items`), edición/borrado en el panel, verificación de Pagos contra Stripe/PayPal sandbox reales cuando el usuario tenga credenciales.
