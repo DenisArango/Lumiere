@@ -2,6 +2,7 @@ import "dotenv/config";
 import { createServer } from "node:http";
 import { createApp } from "@/app";
 import { createSocketServer } from "@/sockets";
+import { setIO } from "@/lib/socket-server";
 import { env } from "@/config/env";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -10,7 +11,7 @@ import { redis } from "@/lib/redis";
 async function bootstrap(): Promise<void> {
   const app = createApp();
   const httpServer = createServer(app);
-  createSocketServer(httpServer);
+  setIO(createSocketServer(httpServer));
 
   await prisma.$connect();
   logger.info("Conectado a PostgreSQL");

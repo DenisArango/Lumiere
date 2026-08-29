@@ -7,6 +7,7 @@ import type {
   ListShowtimesQuery,
   UpdateShowtimeInput,
 } from "@/modules/showtimes/showtime.schema";
+import { sweepExpiredLocks } from "@/modules/bookings/booking.service";
 
 /**
  * Minutos de limpieza/trailers entre el fin de una funcion y el inicio de
@@ -59,6 +60,10 @@ export async function listShowtimes(query: ListShowtimesQuery): Promise<Paginate
 
   const rowsWithAvailability = await Promise.all(
     rows.map(async (showtime) => {
+      // Sin esto, un bloqueo vencido seguiria contando como no-disponible
+      // para cualquiera que solo consulte la cartelera sin intentar
+      // reservar (ver docs/backend/05-reservas.md).
+      await sweepExpiredLocks(showtime.id);
       const availableSeats = await prisma.showtimeSeat.count({
         where: { showtimeId: showtime.id, status: "AVAILABLE" },
       });
@@ -75,6 +80,7 @@ export async function getShowtimeById(id: string) {
     throw new NotFoundError("Función");
   }
 
+  await sweepExpiredLocks(id);
   const availableSeats = await prisma.showtimeSeat.count({
     where: { showtimeId: id, status: "AVAILABLE" },
   });
