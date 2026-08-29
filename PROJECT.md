@@ -63,7 +63,7 @@ Detalle completo en [docs/03-arquitectura.md](docs/03-arquitectura.md). Resumen 
 | Estilos / UI | Tailwind CSS + shadcn/ui (Radix) | Accesibilidad real + personalidad de marca sin reinventar componentes base |
 | Animación | Framer Motion | Transiciones cinematográficas de marca |
 | Estado | Zustand + TanStack Query | Separación estado cliente / estado servidor |
-| Monorepo | npm workspaces | `apps/backend`, `apps/frontend`, `docs/` |
+| Monorepo | pnpm workspaces (Node 22 LTS) | `apps/backend`, `apps/frontend`, `docs/` |
 | Contenedores | Docker + docker-compose | Entorno reproducible (Postgres + Redis + backend) |
 
 ## 5. Metodología
@@ -103,17 +103,16 @@ La fundación (schema completo de BD, contratos de API, sistema de diseño) se c
 
 **Fase activa**: 1 — Fundación (backend base + BD + documentación inicial)
 
-**Última actualización**: 2026-08-28
+**Última actualización**: 2026-08-29
 
-**Completado**:
-- [x] Estructura de repo (monorepo npm workspaces)
+**Completado y verificado de punta a punta** (ver [docs/backend/00-foundation.md](docs/backend/00-foundation.md)):
+- [x] Estructura de repo (monorepo pnpm workspaces, Node 22 LTS)
 - [x] Documentación fundacional (marca, requerimientos, metodología, arquitectura, modelo de datos, UML, seguridad)
-- [x] Schema Prisma completo + migración inicial (generada sin conexión a BD — ver deuda técnica en [docs/backend/00-foundation.md](docs/backend/00-foundation.md))
-- [x] Esqueleto backend (Express + TS + middlewares de seguridad + config) — compila, tipa y lintea sin errores
-- [x] Docker Compose (Postgres + Redis) — definido, no verificado en ejecución (Docker Desktop no disponible en el entorno de desarrollo)
-
-**Pendiente antes de iniciar el siguiente módulo** (ver checklist completo en [docs/backend/00-foundation.md](docs/backend/00-foundation.md)):
-- [ ] Levantar `docker compose up -d` y aplicar la migración inicial contra Postgres real
-- [ ] Ejecutar `npm run dev` y `npm test` de punta a punta contra servicios reales
+- [x] Schema Prisma completo + migración inicial **aplicada contra Postgres real**
+- [x] Esqueleto backend (Express + TS + middlewares de seguridad + config) — compila, tipa, lintea y arranca sin errores
+- [x] Docker Compose (Postgres 16 + Redis 7) — corriendo y verificado (Postgres remapeado al puerto 5433 para evitar conflicto con instalación nativa en Windows, ver incidente 2 en el doc de fundación)
+- [x] Seed de datos de referencia ejecutado
+- [x] Suite de tests (`jest`) pasa
+- [x] Servidor real (`tsx src/server.ts`) probado end-to-end: conecta a Postgres y Redis, `/api/v1/health` responde 200
 
 **Siguiente módulo**: Auth + RBAC

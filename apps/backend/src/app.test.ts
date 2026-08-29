@@ -1,5 +1,10 @@
 import request from "supertest";
 import { createApp } from "@/app";
+import { redis } from "@/lib/redis";
+
+afterAll(() => {
+  redis.disconnect();
+});
 
 describe("GET /api/v1/health", () => {
   it("responde 200 con estado ok", async () => {

@@ -2,21 +2,18 @@
   "name": "lumiere",
   "private": true,
   "description": "Lumiere - portal de gestion de cartelera de cine y venta de boletos en linea",
-  "workspaces": [
-    "apps/backend",
-    "apps/frontend"
-  ],
   "scripts": {
-    "dev:backend": "npm run dev --workspace=apps/backend",
-    "dev:frontend": "npm run dev --workspace=apps/frontend",
-    "build:backend": "npm run build --workspace=apps/backend",
-    "build:frontend": "npm run build --workspace=apps/frontend",
-    "test:backend": "npm run test --workspace=apps/backend",
-    "lint:backend": "npm run lint --workspace=apps/backend",
+    "dev:backend": "pnpm --filter @lumiere/backend dev",
+    "dev:frontend": "pnpm --filter @lumiere/frontend dev",
+    "build:backend": "pnpm --filter @lumiere/backend build",
+    "build:frontend": "pnpm --filter @lumiere/frontend build",
+    "test:backend": "pnpm --filter @lumiere/backend test",
+    "lint:backend": "pnpm --filter @lumiere/backend lint",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },
   "engines": {
-    "node": ">=20"
-  }
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@11.24.0"
 }
