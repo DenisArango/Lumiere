@@ -4,6 +4,14 @@ Esta guía explica cómo el ingeniero evaluador puede validar **todos los endpoi
 
 Todo lo descrito aquí se generó y se verificó ejecutándolo de verdad contra el backend corriendo en local (con [Newman](https://github.com/postmanlabs/newman), el runner oficial de línea de comandos de Postman) — no es una colección escrita a mano y nunca probada.
 
+**Camino más rápido y confiable** — desde la raíz del repo, con el backend corriendo:
+
+```bash
+pnpm test:api
+```
+
+Regenera la colección desde cero y la corre completa contra el backend real. Debe terminar en `73/73 assertions`, `0 failed`. Si quieres repetirlo, limpia primero los datos de la corrida anterior con `pnpm --filter @lumiere/backend prisma:cleanup-postman` (ver sección 3).
+
 ## 1. Qué es esto
 
 [`docs/api-testing/Lumiere.postman_collection.json`](api-testing/Lumiere.postman_collection.json) es una colección **Postman v2.1**, el mismo formato que importa EchoAPI. Contiene:
@@ -28,6 +36,8 @@ node docs/api-testing/generate-collection.js
    pnpm --filter @lumiere/backend prisma:seed
    pnpm --filter @lumiere/backend prisma:seed-demo
    ```
+
+> **Nota sobre el Runner en bloque de EchoAPI**: en pruebas reales se encontró que el modo "Run collection"/Runner de EchoAPI (botón ▶ con Iterations/Environment) no siempre propaga la cookie de sesión recién puesta por una request a la siguiente request dentro de la misma corrida — el síntoma es `"Usuario no encontrado"` justo después de un `register`/`login` exitoso. Esto **no** es un problema del backend ni de la colección (con Newman, el runner oficial de Postman, la misma colección corre 73/73 sin fallos). Si te pasa esto en EchoAPI: (a) usa `pnpm test:api` para la verificación automatizada confiable, o (b) corre las requests **una por una, en orden, con clics manuales** dentro de cada folder — así sí se actualiza la cookie correctamente entre pasos, y de paso es la forma natural de hacer una demo en vivo.
 
 ## 3. Orden recomendado de ejecución
 

@@ -10,10 +10,14 @@
     "test:backend": "pnpm --filter @lumiere/backend test",
     "lint:backend": "pnpm --filter @lumiere/backend lint",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "test:api": "node docs/api-testing/generate-collection.js && newman run docs/api-testing/Lumiere.postman_collection.json"
   },
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@11.24.0"
+  "packageManager": "pnpm@11.24.0",
+  "devDependencies": {
+    "newman": "^6.2.2"
+  }
 }
