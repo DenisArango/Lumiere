@@ -17,6 +17,7 @@ import { movieRouter } from "@/modules/movies/movie.routes";
 import { cinemaRouter } from "@/modules/cinemas/cinema.routes";
 import { roomRouter } from "@/modules/cinemas/room.routes";
 import { seatTypeRouter } from "@/modules/seat-types/seat-type.routes";
+import { languageRouter, ratingRouter } from "@/modules/reference-data/reference-data.routes";
 import { showtimeRouter } from "@/modules/showtimes/showtime.routes";
 import { orderRouter, showtimeSeatRouter } from "@/modules/bookings/booking.routes";
 import { promotionRouter } from "@/modules/promotions/promotion.routes";
@@ -89,6 +90,8 @@ export function createApp(): Express {
   app.use("/api/v1/cinemas", cinemaRouter);
   app.use("/api/v1/rooms", roomRouter);
   app.use("/api/v1/seat-types", seatTypeRouter);
+  app.use("/api/v1/ratings", ratingRouter);
+  app.use("/api/v1/languages", languageRouter);
   app.use("/api/v1/showtimes", showtimeRouter);
   app.use("/api/v1/showtimes", showtimeSeatRouter);
   app.use("/api/v1/orders", orderRouter);
