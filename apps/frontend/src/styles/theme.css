@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+/*
+ * Tokens de marca Lumiere - ver docs/00-brand-lumiere.md.
+ * Los tokens @theme le dicen a Tailwind que genere utilidades (bg-base,
+ * text-primary, etc.) que APUNTAN a variables CSS normales, no a valores
+ * fijos - eso es lo que permite que la MISMA clase utilitaria se vea
+ * distinta en modo claro/oscuro sin duplicar componentes.
+ */
+@theme {
+  --color-base: var(--lumiere-bg-base);
+  --color-surface: var(--lumiere-bg-surface);
+  --color-elevated: var(--lumiere-bg-elevated);
+  --color-gold: var(--lumiere-accent-gold);
+  --color-gold-bright: var(--lumiere-accent-gold-bright);
+  --color-crimson: var(--lumiere-accent-crimson);
+  --color-ink: var(--lumiere-text-primary);
+  --color-ink-muted: var(--lumiere-text-secondary);
+  --color-hairline: var(--lumiere-border);
+  --color-success: var(--lumiere-success);
+  --color-warning: var(--lumiere-warning);
+  --color-danger: var(--lumiere-danger);
+
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", -apple-system, "Segoe UI", sans-serif;
+
+  /*
+   * Radios mas contenidos que el default de Tailwind: la app debe leerse
+   * como una publicacion/afiche de cine, no como un dashboard SaaS generico
+   * de esquinas muy redondeadas - ver memoria de feedback sobre composicion.
+   */
+  --radius-sm: 0.0625rem;
+  --radius-md: 0.125rem;
+  --radius-lg: 0.1875rem;
+  --radius-xl: 0.25rem;
+}
+
+/* Modo oscuro: identidad por defecto de la marca (ver docs/00-brand-lumiere.md). */
+:root {
+  --lumiere-bg-base: #0b0b0f;
+  --lumiere-bg-surface: #15151c;
+  --lumiere-bg-elevated: #1e1e27;
+  --lumiere-accent-gold: #d4a94e;
+  --lumiere-accent-gold-bright: #e8c670;
+  --lumiere-accent-crimson: #8c1f2f;
+  --lumiere-text-primary: #f5f1e8;
+  --lumiere-text-secondary: #a8a6b0;
+  --lumiere-border: #2a2a35;
+  --lumiere-success: #4e9c6a;
+  --lumiere-warning: #d4a94e;
+  --lumiere-danger: #c24b4b;
+  color-scheme: dark;
+}
+
+/* Modo claro explicito (toggle del usuario). */
+:root[data-theme="light"] {
+  --lumiere-bg-base: #faf6ec;
+  --lumiere-bg-surface: #ffffff;
+  --lumiere-bg-elevated: #ffffff;
+  --lumiere-accent-gold: #b8862f;
+  --lumiere-accent-gold-bright: #96701f;
+  --lumiere-accent-crimson: #7a1b29;
+  --lumiere-text-primary: #1a1a1f;
+  --lumiere-text-secondary: #5c5a66;
+  --lumiere-border: #e4dfd0;
+  --lumiere-success: #2f7a4d;
+  --lumiere-warning: #b8862f;
+  --lumiere-danger: #a83a3a;
+  color-scheme: light;
+}
+
+/* Preferencia "sistema": si el SO pide claro y el usuario no forzo oscuro explicitamente. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]):not([data-theme="light"]) {
+    --lumiere-bg-base: #faf6ec;
+    --lumiere-bg-surface: #ffffff;
+    --lumiere-bg-elevated: #ffffff;
+    --lumiere-accent-gold: #b8862f;
+    --lumiere-accent-gold-bright: #96701f;
+    --lumiere-accent-crimson: #7a1b29;
+    --lumiere-text-primary: #1a1a1f;
+    --lumiere-text-secondary: #5c5a66;
+    --lumiere-border: #e4dfd0;
+    --lumiere-success: #2f7a4d;
+    --lumiere-warning: #b8862f;
+    --lumiere-danger: #a83a3a;
+    color-scheme: light;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--lumiere-border);
+  }
+
+  html {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    background-color: var(--lumiere-bg-base);
+    color: var(--lumiere-text-primary);
+    font-variant-numeric: tabular-nums;
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+  }
+
+  /*
+   * Grano de pelicula: textura fija de muy baja opacidad sobre toda la app.
+   * Es lo que separa una superficie "flat UI generica" de un afiche/pantalla
+   * de proyeccion real - un detalle deliberadamente no-digital-perfecto.
+   */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Etiqueta pequeña tracked-uppercase tipo credito de pelicula ("DIRIGIDA POR"). */
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--lumiere-accent-gold);
+  }
+
+  /* Numero de indice estilo contador de rollo de pelicula (01, 02, 03...). */
+  .reel-index {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-variant-numeric: tabular-nums;
+    color: var(--lumiere-text-secondary);
+  }
+}
+
