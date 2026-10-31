@@ -7,7 +7,10 @@ import type {
   ListShowtimesQuery,
   UpdateShowtimeInput,
 } from "@/modules/showtimes/showtime.schema";
-import { sweepExpiredLocks } from "@/modules/bookings/booking.service";
+import { cancelOrder, sweepExpiredLocks } from "@/modules/bookings/booking.service";
+import { refundPaidOrder } from "@/modules/payments/payment.service";
+import { recordAudit } from "@/modules/audit/audit.service";
+import { logger } from "@/lib/logger";
 
 /**
  * Minutos de limpieza/trailers entre el fin de una funcion y el inicio de
@@ -40,12 +43,15 @@ export async function listShowtimes(query: ListShowtimesQuery): Promise<Paginate
       }
     : {};
 
+  // Una funcion que ya comenzo no se ofrece: no tiene sentido vender boletos de algo que paso.
+  const startTime = { ...(dateFilter.startTime ?? {}), gt: new Date() };
+
   const where = {
     status: "SCHEDULED" as const,
     ...(query.movieId ? { movieId: query.movieId } : {}),
     ...(query.roomId ? { roomId: query.roomId } : {}),
     ...(query.cinemaId ? { room: { cinemaId: query.cinemaId } } : {}),
-    ...dateFilter,
+    startTime,
   };
 
   const [rows, total] = await Promise.all([
@@ -145,10 +151,69 @@ export async function createShowtime(input: CreateShowtimeInput): Promise<Showti
   });
 }
 
-export async function updateShowtime(id: string, input: UpdateShowtimeInput): Promise<Showtime> {
+/** Resultado de liquidar las ordenes de una funcion cancelada. */
+export interface CancellationSummary {
+  /** Ordenes pagadas que se reembolsaron en el proveedor de pago. */
+  refunded: number;
+  /** Ordenes pendientes de pago que se cancelaron (butacas y puntos devueltos). */
+  cancelledPending: number;
+  /** Reembolsos que fallaron: requieren atencion manual desde Ordenes. */
+  failed: { orderId: string; message: string }[];
+}
+
+/**
+ * Al cancelar una funcion, cada compra queda resuelta: las pagadas se reembolsan y las pendientes se cancelan.
+ * Un reembolso que falle NO detiene a los demas ni revierte la cancelacion; queda en `failed` para que
+ * alguien lo atienda manualmente (y en la bitacora).
+ */
+async function settleCancelledShowtime(showtimeId: string): Promise<CancellationSummary> {
+  const orders = await prisma.order.findMany({
+    where: { showtimeId, status: { in: ["PAID", "PENDING"] } },
+    select: { id: true, userId: true, status: true },
+  });
+
+  const summary: CancellationSummary = { refunded: 0, cancelledPending: 0, failed: [] };
+
+  for (const order of orders) {
+    try {
+      if (order.status === "PAID") {
+        await refundPaidOrder(order.id);
+        summary.refunded += 1;
+      } else {
+        await cancelOrder(order.id, order.userId, true);
+        summary.cancelledPending += 1;
+      }
+    } catch (err) {
+      logger.error({ orderId: order.id, err }, "No se pudo liquidar una orden al cancelar la función");
+      summary.failed.push({ orderId: order.id, message: err instanceof Error ? err.message : "Error desconocido" });
+    }
+  }
+
+  return summary;
+}
+
+export async function updateShowtime(
+  id: string,
+  input: UpdateShowtimeInput,
+): Promise<{ showtime: Showtime; cancellation?: CancellationSummary }> {
   const existing = await prisma.showtime.findUnique({ where: { id } });
   if (!existing) {
     throw new NotFoundError("Función");
   }
-  return prisma.showtime.update({ where: { id }, data: input });
+
+  // El estado cambia primero: asi nadie puede comprar mientras se liquidan las ordenes.
+  const showtime = await prisma.showtime.update({ where: { id }, data: input });
+
+  if (input.status === "CANCELLED" && existing.status !== "CANCELLED") {
+    const cancellation = await settleCancelledShowtime(id);
+    await recordAudit({
+      action: "showtime.cancel_settlement",
+      entityType: "Showtime",
+      entityId: id,
+      metadata: { ...cancellation },
+    });
+    return { showtime, cancellation };
+  }
+
+  return { showtime };
 }

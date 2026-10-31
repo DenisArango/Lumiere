@@ -1,10 +1,13 @@
 import { Router } from "express";
 import { validate } from "@/middleware/validate";
 import { authenticate } from "@/middleware/authenticate";
+import { authorize } from "@/middleware/authorize";
 import { csrfProtection } from "@/middleware/csrf";
+import { auditTrail } from "@/middleware/audit-trail";
 import { catchAsync } from "@/utils/catch-async";
 import {
   createOrderSchema,
+  listAllOrdersQuerySchema,
   listOrdersQuerySchema,
   lockSeatsSchema,
   releaseSeatsSchema,
@@ -50,11 +53,20 @@ orderRouter.get(
   catchAsync(bookingController.listMyOrders),
 );
 
+orderRouter.get(
+  "/",
+  authenticate,
+  authorize("SUPER_ADMIN", "CINEMA_MANAGER"),
+  validate(listAllOrdersQuerySchema, "query"),
+  catchAsync(bookingController.listAllOrders),
+);
+
 orderRouter.get("/:id", authenticate, catchAsync(bookingController.getOrderById));
 
 orderRouter.post(
   "/:id/cancel",
   authenticate,
   csrfProtection,
+  auditTrail("order.cancel", "Order"),
   catchAsync(bookingController.cancelOrder),
 );

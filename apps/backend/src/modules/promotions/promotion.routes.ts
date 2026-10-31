@@ -2,7 +2,9 @@ import { Router } from "express";
 import { validate } from "@/middleware/validate";
 import { authenticate } from "@/middleware/authenticate";
 import { authorize } from "@/middleware/authorize";
+import { requireStaffForInactive } from "@/middleware/include-inactive";
 import { csrfProtection } from "@/middleware/csrf";
+import { auditTrail } from "@/middleware/audit-trail";
 import { catchAsync } from "@/utils/catch-async";
 import {
   createPromotionSchema,
@@ -15,7 +17,7 @@ export const promotionRouter = Router();
 
 const staffRoles = ["SUPER_ADMIN", "CINEMA_MANAGER"] as const;
 
-promotionRouter.get("/", catchAsync(promotionController.list));
+promotionRouter.get("/", requireStaffForInactive, catchAsync(promotionController.list));
 promotionRouter.get("/:id", catchAsync(promotionController.getById));
 
 promotionRouter.post(
@@ -31,6 +33,7 @@ promotionRouter.post(
   authorize(...staffRoles),
   csrfProtection,
   validate(createPromotionSchema),
+  auditTrail("promotion.create", "Promotion"),
   catchAsync(promotionController.create),
 );
 
@@ -40,5 +43,6 @@ promotionRouter.patch(
   authorize(...staffRoles),
   csrfProtection,
   validate(updatePromotionSchema),
+  auditTrail("promotion.update", "Promotion"),
   catchAsync(promotionController.update),
 );

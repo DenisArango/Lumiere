@@ -6,21 +6,32 @@ import {
   CheckoutPaymentIntent,
 } from "@paypal/paypal-server-sdk";
 import { env } from "@/config/env";
+import { logger } from "@/lib/logger";
 import { AppError } from "@/utils/app-error";
-import type { ChargeParams, ChargeResult, PaymentGateway, RefundResult } from "@/modules/payments/payment-gateway";
+import { toProviderAmount } from "@/modules/payments/currency";
+import type {
+  ChargeParams,
+  ChargeResult,
+  CheckoutSession,
+  CheckoutSessionParams,
+  PaymentGateway,
+  RefundResult,
+} from "@/modules/payments/payment-gateway";
+
+/** Monto en la moneda de PayPal como cadena con 2 decimales (el formato que exige su API). */
+export function toPayPalAmount(amount: number): { value: string; currency: string } {
+  const charged = toProviderAmount("PAYPAL", amount);
+  return { value: charged.value.toFixed(2), currency: charged.currency };
+}
 
 /**
- * Implementacion real contra la API de PayPal (Orders v2). NO verificada
- * end-to-end en este entorno (requiere PAYPAL_CLIENT_ID/SECRET de una
- * cuenta sandbox real) - ver docs/backend/09-pagos.md. `source` es el ID de
- * la orden de PayPal ya aprobada por el comprador en el frontend (PayPal
- * SDK / Smart Buttons), no un dato de pago crudo.
+ * Implementacion real contra la API de PayPal (Orders v2).
  *
- * La forma de la API (OrdersController.ordersCapture, PaymentsController.
- * capturesRefund, campos de Money/RefundRequest) se verifico contra los
- * .d.ts reales del paquete instalado (no contra documentacion externa) -
- * compila y tipa correctamente. Lo unico que falta es la prueba de red
- * real contra el sandbox de PayPal, que requiere credenciales.
+ * Seguridad del monto: la orden de PayPal se crea AQUI (createCheckoutSession) con el total de nuestra
+ * orden y su id en `custom_id`. Al capturar se vuelve a consultar y se verifica que sea esa orden y ese
+ * monto; asi un cliente no puede pagar con una orden de PayPal de otro valor creada por su cuenta.
+ *
+ * `providerPaymentId` es el id de la CAPTURA (no de la orden de PayPal): es el que exige el reembolso.
  */
 export class PayPalGateway implements PaymentGateway {
   private client: Client | undefined;
@@ -41,27 +52,63 @@ export class PayPalGateway implements PaymentGateway {
     return this.client;
   }
 
-  async charge(params: ChargeParams): Promise<ChargeResult> {
-    const client = this.getClient();
-    const ordersController = new OrdersController(client);
+  async createCheckoutSession(params: CheckoutSessionParams): Promise<CheckoutSession> {
+    const orders = new OrdersController(this.getClient());
+    const charged = toPayPalAmount(params.amount);
 
-    // `source` es el ID de una orden de PayPal ya creada/aprobada en el
-    // frontend - aqui solo se captura el pago.
-    const { result } = await ordersController.ordersCapture({ id: params.source });
+    const { result } = await orders.ordersCreate({
+      body: {
+        intent: CheckoutPaymentIntent.Capture,
+        purchaseUnits: [
+          {
+            customId: params.orderId,
+            description: "Lumière: boletos y dulcería",
+            amount: { currencyCode: charged.currency, value: charged.value },
+          },
+        ],
+      },
+      prefer: "return=minimal",
+    });
+
+    if (!result.id) {
+      throw new AppError("PayPal no devolvió el id de la orden", 502);
+    }
+    return { providerOrderId: result.id, chargedAmount: Number(charged.value), chargedCurrency: charged.currency };
+  }
+
+  async charge(params: ChargeParams): Promise<ChargeResult> {
+    const orders = new OrdersController(this.getClient());
+    const expected = toPayPalAmount(params.amount);
+
+    // 1) Verificar ANTES de capturar: que la orden de PayPal sea de esta orden y por este monto.
+    const { result: existing } = await orders.ordersGet({ id: params.source });
+    const unit = existing.purchaseUnits?.[0];
+    const sameOrder = unit?.customId === params.orderId;
+    const sameAmount = unit?.amount?.value === expected.value && unit?.amount?.currencyCode === expected.currency;
+    if (!sameOrder || !sameAmount) {
+      logger.warn({ orderId: params.orderId, paypalOrder: params.source }, "Orden de PayPal no coincide con la orden; no se captura");
+      return { providerPaymentId: params.source, status: "FAILED" };
+    }
+
+    // 2) Capturar.
+    const { result } = await orders.ordersCapture({ id: params.source });
+    const capture = result.purchaseUnits?.[0]?.payments?.captures?.[0];
+    if (!capture?.id) {
+      return { providerPaymentId: params.source, status: "FAILED" };
+    }
 
     return {
-      providerPaymentId: result.id ?? params.source,
-      status: result.status === "COMPLETED" ? "COMPLETED" : "FAILED",
+      providerPaymentId: capture.id,
+      status: result.status === "COMPLETED" && capture.status === "COMPLETED" ? "COMPLETED" : "FAILED",
     };
   }
 
-  async refund(providerPaymentId: string, amount: number): Promise<RefundResult> {
-    const client = this.getClient();
-    const paymentsController = new PaymentsController(client);
-
-    const { result } = await paymentsController.capturesRefund({
+  /** Reembolso total de la captura (sin monto: PayPal devuelve todo en la moneda en que cobro, sin convertir). */
+  async refund(providerPaymentId: string): Promise<RefundResult> {
+    const payments = new PaymentsController(this.getClient());
+    const { result } = await payments.capturesRefund({
       captureId: providerPaymentId,
-      body: { amount: { value: amount.toFixed(2), currencyCode: "USD" } },
+      body: { noteToPayer: "Reembolso de tu compra en Lumière" },
     });
 
     return {
@@ -70,6 +117,3 @@ export class PayPalGateway implements PaymentGateway {
     };
   }
 }
-
-/** Referenciado para dejar constancia del intent usado al crear ordenes desde el frontend (CAPTURE, no AUTHORIZE). */
-export const PAYPAL_INTENT = CheckoutPaymentIntent.Capture;

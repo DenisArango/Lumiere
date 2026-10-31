@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { OrderStatus } from "@prisma/client";
 import { paginationSchema } from "@/utils/pagination";
 
 export const lockSeatsSchema = z.object({
@@ -21,10 +22,17 @@ export const createOrderSchema = z.object({
     )
     .optional(),
   promotionCode: z.string().trim().toUpperCase().min(1).optional(),
+  /** Puntos del programa a canjear como descuento (multiplos de 10; solo miembros). */
+  redeemPoints: z.coerce.number().int().min(0).optional(),
 });
 
 export const listOrdersQuerySchema = paginationSchema;
 
+export const listAllOrdersQuerySchema = paginationSchema.extend({
+  status: z.nativeEnum(OrderStatus).optional(),
+});
+
+export type ListAllOrdersQuery = z.infer<typeof listAllOrdersQuerySchema>;
 export type LockSeatsInput = z.infer<typeof lockSeatsSchema>;
 export type ReleaseSeatsInput = z.infer<typeof releaseSeatsSchema>;
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;

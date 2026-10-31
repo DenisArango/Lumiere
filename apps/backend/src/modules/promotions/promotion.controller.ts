@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { wantsInactive } from "@/middleware/include-inactive";
 import * as promotionService from "@/modules/promotions/promotion.service";
 import type {
   CreatePromotionInput,
@@ -6,8 +7,8 @@ import type {
   ValidatePromotionInput,
 } from "@/modules/promotions/promotion.schema";
 
-export async function list(_req: Request, res: Response): Promise<void> {
-  const promotions = await promotionService.listActivePromotions();
+export async function list(req: Request, res: Response): Promise<void> {
+  const promotions = await promotionService.listPromotions(wantsInactive(req));
   res.status(200).json({ promotions });
 }
 

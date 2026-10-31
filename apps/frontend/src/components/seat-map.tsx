@@ -66,6 +66,8 @@ export function SeatMap({ seats, myLockedIds, onToggle, disabled }: SeatMapProps
                       disabled={disabled || status === "taken"}
                       onClick={() => onToggle(seat)}
                       title={`Fila ${seat.rowLabel}, butaca ${seat.seatNumber} · ${seat.seatType.name}`}
+                      aria-label={`Fila ${seat.rowLabel}, butaca ${seat.seatNumber}, ${seat.seatType.name}${status === "taken" ? ", ocupada" : ""}`}
+                      aria-pressed={status === "mine"}
                       className={cn(
                         "flex size-6 items-center justify-center rounded-t-[3px] rounded-b-sm border text-[9px] font-medium transition-colors sm:size-7",
                         status === "available" && "border-hairline bg-transparent text-ink-muted hover:border-gold hover:text-gold",

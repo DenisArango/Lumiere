@@ -3,6 +3,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Order } from "@/features/bookings/bookings.types";
+import { formatMoney, formatNumber } from "@/lib/format";
 
 export function ConfirmationPage() {
   const location = useLocation();
@@ -18,7 +19,7 @@ export function ConfirmationPage() {
       <p className="eyebrow mt-4">Compra confirmada</p>
       <h1 className="mt-1 font-display text-3xl italic text-ink">Disfruta tu función</h1>
       <p className="mt-2 text-sm text-ink-muted">
-        Presenta este código en la entrada de la sala. También lo enviamos a tu correo.
+        Presenta este código en la entrada de la sala. También lo encuentras siempre en “Mis boletos”.
       </p>
 
       <div className="mx-auto mt-8 max-w-xs border border-dashed border-hairline bg-surface p-6">
@@ -26,8 +27,14 @@ export function ConfirmationPage() {
           <QRCodeSVG value={order.qrCode ?? order.id} size={160} />
         </div>
         <p className="reel-index mt-4 text-lg">{order.qrCode}</p>
-        <p className="mt-1 text-xs text-ink-muted">Total pagado: ${Number(order.totalAmount).toFixed(2)}</p>
+        <p className="mt-1 text-xs text-ink-muted">Total pagado: {formatMoney(order.totalAmount)}</p>
       </div>
+
+      {order.pointsEarned ? (
+        <p className="mx-auto mt-6 max-w-xs border border-gold/50 px-4 py-3 text-sm text-gold">
+          Sumaste <strong>{formatNumber(order.pointsEarned)} puntos</strong> en Lumière.
+        </p>
+      ) : null}
 
       <Button asChild variant="outline" className="mt-8">
         <Link to="/mis-ordenes">Ver mis boletos</Link>

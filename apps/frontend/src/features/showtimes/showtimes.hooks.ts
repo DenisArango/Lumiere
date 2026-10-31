@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createShowtime, fetchShowtimeById, fetchShowtimes } from "@/features/showtimes/showtimes.api";
-import type { CreateShowtimeInput, ListShowtimesParams } from "@/features/showtimes/showtimes.types";
+import {
+  createShowtime,
+  fetchShowtimeById,
+  fetchShowtimes,
+  updateShowtime,
+} from "@/features/showtimes/showtimes.api";
+import type { CreateShowtimeInput, ListShowtimesParams, UpdateShowtimeInput } from "@/features/showtimes/showtimes.types";
 
 export function useShowtimes(params: ListShowtimesParams) {
   return useQuery({
@@ -27,6 +32,14 @@ export function useCreateShowtime() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateShowtimeInput) => createShowtime(input),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["showtimes"] }),
+  });
+}
+
+export function useUpdateShowtime() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: UpdateShowtimeInput }) => updateShowtime(id, input),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["showtimes"] }),
   });
 }

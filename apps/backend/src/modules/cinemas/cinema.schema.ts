@@ -19,6 +19,10 @@ export const updateCinemaSchema = createCinemaSchema.partial().extend({
 export const listCinemasQuerySchema = paginationSchema.extend({
   city: z.string().trim().min(1).max(100).optional(),
   search: z.string().trim().min(1).max(150).optional(),
+  includeInactive: z
+    .enum(["true", "false"])
+    .transform((v) => v === "true")
+    .optional(),
 });
 
 export type CreateCinemaInput = z.infer<typeof createCinemaSchema>;

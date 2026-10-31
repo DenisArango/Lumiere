@@ -9,8 +9,11 @@ import type { CreateProductInput, UpdateProductInput } from "@/modules/products/
  * soportado por el modulo de reservas desde su construccion; lo que
  * faltaba era exponer la gestion del catalogo de productos en si.
  */
-export async function listActiveProducts(): Promise<Product[]> {
-  return prisma.product.findMany({ where: { isActive: true }, orderBy: { name: "asc" } });
+export async function listProducts(includeInactive = false): Promise<Product[]> {
+  return prisma.product.findMany({
+    where: includeInactive ? {} : { isActive: true },
+    orderBy: { name: "asc" },
+  });
 }
 
 export async function createProduct(input: CreateProductInput): Promise<Product> {

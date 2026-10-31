@@ -1,9 +1,10 @@
 import type { Request, Response } from "express";
+import { wantsInactive } from "@/middleware/include-inactive";
 import * as productService from "@/modules/products/product.service";
 import type { CreateProductInput, UpdateProductInput } from "@/modules/products/product.schema";
 
-export async function list(_req: Request, res: Response): Promise<void> {
-  const products = await productService.listActiveProducts();
+export async function list(req: Request, res: Response): Promise<void> {
+  const products = await productService.listProducts(wantsInactive(req));
   res.status(200).json({ products });
 }
 

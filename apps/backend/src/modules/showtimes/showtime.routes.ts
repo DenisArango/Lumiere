@@ -3,6 +3,7 @@ import { validate } from "@/middleware/validate";
 import { authenticate } from "@/middleware/authenticate";
 import { authorize } from "@/middleware/authorize";
 import { csrfProtection } from "@/middleware/csrf";
+import { auditTrail } from "@/middleware/audit-trail";
 import { catchAsync } from "@/utils/catch-async";
 import {
   createShowtimeSchema,
@@ -28,6 +29,7 @@ showtimeRouter.post(
   authorize(...staffRoles),
   csrfProtection,
   validate(createShowtimeSchema),
+  auditTrail("showtime.create", "Showtime"),
   catchAsync(showtimeController.create),
 );
 
@@ -37,5 +39,6 @@ showtimeRouter.patch(
   authorize(...staffRoles),
   csrfProtection,
   validate(updateShowtimeSchema),
+  auditTrail("showtime.update", "Showtime"),
   catchAsync(showtimeController.update),
 );

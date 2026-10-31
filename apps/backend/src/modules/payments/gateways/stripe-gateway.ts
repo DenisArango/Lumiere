@@ -1,18 +1,22 @@
 import Stripe from "stripe";
 import { env } from "@/config/env";
 import { AppError } from "@/utils/app-error";
-import type { ChargeParams, ChargeResult, PaymentGateway, RefundResult } from "@/modules/payments/payment-gateway";
+import { toProviderAmount } from "@/modules/payments/currency";
+import type {
+  ChargeParams,
+  ChargeResult,
+  ConfirmParams,
+  PaymentGateway,
+  RefundResult,
+} from "@/modules/payments/payment-gateway";
 
 /**
- * Implementacion real contra la API de Stripe. La forma de los parametros
- * (PaymentIntentCreateParams, RefundCreateParams) se verifico contra los
- * .d.ts reales del paquete `stripe` instalado - compila y tipa
- * correctamente. NO verificada end-to-end contra la red real de Stripe en
- * este entorno (requiere STRIPE_SECRET_KEY de una cuenta sandbox real) -
- * ver docs/backend/09-pagos.md seccion de deuda tecnica. El cliente se
- * instancia de forma perezosa (no al importar el modulo) para que la app
- * pueda arrancar sin la clave configurada mientras el proveedor no se use
- * realmente.
+ * Implementacion real contra la API de Stripe, verificada end-to-end en modo
+ * prueba (cobro, 3D Secure, reembolso) - ver docs/backend/11-usuarios-puntos-y-stripe.md.
+ *
+ * El cliente se instancia de forma perezosa (no al importar el modulo) para
+ * que la app pueda arrancar sin la clave configurada mientras el proveedor
+ * no se use realmente.
  */
 export class StripeGateway implements PaymentGateway {
   private client: Stripe | undefined;
@@ -30,31 +34,71 @@ export class StripeGateway implements PaymentGateway {
   async charge(params: ChargeParams): Promise<ChargeResult> {
     const client = this.getClient();
 
-    const paymentIntent = await client.paymentIntents.create({
-      amount: Math.round(params.amount * 100),
-      currency: params.currency.toLowerCase(),
-      payment_method: params.source,
-      confirm: true,
-      automatic_payment_methods: { enabled: true, allow_redirects: "never" },
-    });
+    // La orden esta en la moneda de la tienda; Stripe cobra en la de la cuenta (ej. GTQ -> MXN).
+    const charged = toProviderAmount("STRIPE", params.amount);
+    const paymentIntent = await client.paymentIntents.create(
+      {
+        amount: Math.round(charged.value * 100),
+        currency: charged.currency.toLowerCase(),
+        payment_method: params.source,
+        confirm: true,
+        // La orden viaja como metadata: los webhooks y la verificacion tras 3D Secure la usan para reconciliar.
+        metadata: { orderId: params.orderId },
+        // "never": sin metodos con redireccion; el 3D Secure de tarjeta se completa en un modal, sin salir del sitio.
+        automatic_payment_methods: { enabled: true, allow_redirects: "never" },
+      },
+      // Reintentar con la misma tarjeta y orden no debe crear un segundo cobro.
+      { idempotencyKey: `lumiere-charge-${params.orderId}-${params.source}` },
+    );
 
-    return {
-      providerPaymentId: paymentIntent.id,
-      status: paymentIntent.status === "succeeded" ? "COMPLETED" : "FAILED",
-    };
+    return this.toResult(paymentIntent);
   }
 
-  async refund(providerPaymentId: string, amount: number): Promise<RefundResult> {
+  /**
+   * Tras completar 3D Secure en el navegador, el cliente avisa al backend. NO se confia en ese aviso:
+   * se vuelve a consultar el PaymentIntent a Stripe y se comprueba que sea de esta orden y por el monto exacto.
+   */
+  async confirm(params: ConfirmParams): Promise<ChargeResult> {
+    const client = this.getClient();
+    const paymentIntent = await client.paymentIntents.retrieve(params.providerPaymentId);
+
+    const sameOrder = paymentIntent.metadata?.orderId === params.orderId;
+    const expected = toProviderAmount("STRIPE", params.amount);
+    const sameAmount = paymentIntent.amount === Math.round(expected.value * 100);
+    const sameCurrency = paymentIntent.currency === expected.currency.toLowerCase();
+    if (!sameOrder || !sameAmount || !sameCurrency) {
+      return { providerPaymentId: paymentIntent.id, status: "FAILED" };
+    }
+
+    return this.toResult(paymentIntent);
+  }
+
+  /**
+   * Reembolso total sin monto: Stripe devuelve exactamente lo que cobro, en la moneda en que cobro. Pasar el monto de
+   * la orden (en la moneda de la tienda) seria incorrecto cuando la cuenta cobra en otra moneda.
+   */
+  async refund(providerPaymentId: string): Promise<RefundResult> {
     const client = this.getClient();
 
-    const refund = await client.refunds.create({
-      payment_intent: providerPaymentId,
-      amount: Math.round(amount * 100),
-    });
+    const refund = await client.refunds.create({ payment_intent: providerPaymentId });
 
     return {
       providerRefundId: refund.id,
       status: refund.status === "succeeded" ? "COMPLETED" : "FAILED",
     };
+  }
+
+  private toResult(paymentIntent: Stripe.PaymentIntent): ChargeResult {
+    if (paymentIntent.status === "succeeded") {
+      return { providerPaymentId: paymentIntent.id, status: "COMPLETED" };
+    }
+    if (paymentIntent.status === "requires_action" && paymentIntent.client_secret) {
+      return {
+        providerPaymentId: paymentIntent.id,
+        status: "REQUIRES_ACTION",
+        clientSecret: paymentIntent.client_secret,
+      };
+    }
+    return { providerPaymentId: paymentIntent.id, status: "FAILED" };
   }
 }

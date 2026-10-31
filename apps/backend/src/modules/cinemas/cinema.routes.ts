@@ -3,6 +3,8 @@ import { validate } from "@/middleware/validate";
 import { authenticate } from "@/middleware/authenticate";
 import { authorize } from "@/middleware/authorize";
 import { csrfProtection } from "@/middleware/csrf";
+import { requireStaffForInactive } from "@/middleware/include-inactive";
+import { auditTrail } from "@/middleware/audit-trail";
 import { catchAsync } from "@/utils/catch-async";
 import {
   createCinemaSchema,
@@ -16,7 +18,12 @@ export const cinemaRouter = Router();
 
 const staffRoles = ["SUPER_ADMIN", "CINEMA_MANAGER"] as const;
 
-cinemaRouter.get("/", validate(listCinemasQuerySchema, "query"), catchAsync(cinemaController.list));
+cinemaRouter.get(
+  "/",
+  requireStaffForInactive,
+  validate(listCinemasQuerySchema, "query"),
+  catchAsync(cinemaController.list),
+);
 cinemaRouter.get("/:id", catchAsync(cinemaController.getById));
 
 cinemaRouter.post(
@@ -25,6 +32,7 @@ cinemaRouter.post(
   authorize("SUPER_ADMIN"),
   csrfProtection,
   validate(createCinemaSchema),
+  auditTrail("cinema.create", "Cinema"),
   catchAsync(cinemaController.create),
 );
 
@@ -34,6 +42,7 @@ cinemaRouter.patch(
   authorize("SUPER_ADMIN"),
   csrfProtection,
   validate(updateCinemaSchema),
+  auditTrail("cinema.update", "Cinema"),
   catchAsync(cinemaController.update),
 );
 
@@ -45,5 +54,6 @@ cinemaRouter.post(
   authorize(...staffRoles),
   csrfProtection,
   validate(createRoomSchema),
+  auditTrail("room.create", "Room"),
   catchAsync(cinemaController.createRoom),
 );

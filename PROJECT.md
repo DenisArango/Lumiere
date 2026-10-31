@@ -235,3 +235,27 @@ RF-07 (venta en línea) queda 100% cerrado en cuanto a lógica de negocio — so
 - [x] Corrida final: **73/73 aserciones, 70/70 requests, 0 fallos**
 
 **Siguiente paso**: edición/borrado en el panel, verificación de Pagos contra Stripe/PayPal sandbox reales cuando el usuario tenga credenciales.
+
+**Fase 20 — Panel completo, usuarios, puntos y Stripe real**: construida y verificada ([docs/backend/11-usuarios-puntos-y-stripe.md](docs/backend/11-usuarios-puntos-y-stripe.md), [docs/frontend/07-panel-completo-y-stripe.md](docs/frontend/07-panel-completo-y-stripe.md))
+- [x] Backend: gestión de usuarios (`SUPER_ADMIN`), programa de puntos (se otorgan al pagar, se revierten al reembolsar), listados de staff (`GET /orders`, `GET /reviews`, `?includeInactive`). **116/116 pruebas.**
+- [x] **Bug real corregido**: cancelar/reembolsar/expirar una orden dejaba la butaca imposible de recomprar (`order_seats` único). Con pruebas de regresión.
+- [x] **Cobro real con Stripe (modo prueba)** verificado: Stripe Elements en el checkout → cobro → QR → puntos → reembolso. Moneda configurable (`PAYMENT_CURRENCY` / `VITE_CURRENCY`, GTQ).
+- [x] Frontend: edición/desactivación de cines, salas, funciones, promociones y productos; moderación de reseñas; reembolsos; usuarios; personas y géneros; perfil público de personas; 404 real; Lumière Club.
+- [ ] Pendiente: webhooks de Stripe/PayPal, 3D Secure, PayPal real, canje de puntos, reembolso automático al cancelar una función.
+
+**Fase 21 — Webhooks, 3D Secure, PayPal, canje de puntos y auditoría**: construida ([docs/backend/12-webhooks-3ds-paypal-y-auditoria.md](docs/backend/12-webhooks-3ds-paypal-y-auditoria.md))
+- [x] Transiciones `PAID`/`REFUNDED` únicas, atómicas e idempotentes; **webhooks de Stripe y PayPal** con firma verificada, eventos deduplicados y reembolso automático de cobros huérfanos. **147/147 pruebas.**
+- [x] **3D Secure verificado en el navegador** con Stripe real (COMPLETE y FAIL). Checkout rediseñado (talón de boleto) que reutiliza la orden al reintentar.
+- [x] PayPal: la orden la crea el servidor y el monto se verifica antes de capturar; `providerPaymentId` ahora es la captura (antes todo reembolso de PayPal habría fallado). **Verificado hasta la ventana de login del sandbox real.**
+- [x] Canje de puntos, reembolso automático al cancelar una función, bitácora de auditoría con pantalla (solo super admin).
+- [x] **Bug real corregido**: funciones ya comenzadas seguían a la venta. Seed demo ahora idempotente con datos de uso real.
+- [x] Diseño: pasada con taste-skill y Web Interface Guidelines (encabezado móvil roto, texto bajo 13 px, teclado en menús, `prefers-reduced-motion`, saltar al contenido).
+- [x] **PayPal sandbox verificado de punta a punta**: compra aprobada con cuenta compradora real de prueba y reembolso real de la captura.
+- [ ] Pendiente: entrega real de webhooks de los proveedores (requiere URL pública: se podrá probar ya desplegado en Render).
+
+**Fase 22 — Monedas por pasarela y despliegue en Render**: construida y verificada ([docs/09-despliegue-render.md](docs/09-despliegue-render.md), [docs/backend/12-webhooks-3ds-paypal-y-auditoria.md](docs/backend/12-webhooks-3ds-paypal-y-auditoria.md))
+- [x] El programa trabaja en quetzales; Stripe cobra en MXN y PayPal en USD con tipo de cambio configurable. **Verificado con Stripe real**: Q95.00 → 226.19 MXN cobrados y reembolsados. **151/151 pruebas.**
+- [x] Imagen Docker única (sitio + API), `render.yaml` (Blueprint con PostgreSQL y Redis), arranque con migraciones, catálogos base y primer super admin. **Probada contra una base vacía** con compras reales de tarjeta, 3D Secure y PayPal dentro del contenedor de producción.
+- [x] El `Dockerfile` anterior del backend no funcionaba (usaba npm en un monorepo pnpm): reemplazado por uno en la raíz.
+- [ ] Pendiente: los tipos de cambio de ejemplo (0.42 MXN, 7.7 USD) deben confirmarse; la base gratuita de Render caduca a los 30 días.
+

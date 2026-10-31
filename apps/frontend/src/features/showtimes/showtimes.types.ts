@@ -32,3 +32,20 @@ export interface CreateShowtimeInput {
   basePrice: number;
   format: "TWO_D" | "THREE_D";
 }
+
+export interface UpdateShowtimeInput {
+  basePrice?: number;
+  status?: "SCHEDULED" | "CANCELLED" | "COMPLETED";
+}
+
+/** Resultado de liquidar las ordenes de una funcion cancelada. */
+export interface CancellationSummary {
+  refunded: number;
+  cancelledPending: number;
+  failed: { orderId: string; message: string }[];
+}
+
+export interface UpdateShowtimeResult {
+  showtime: Showtime;
+  cancellation?: CancellationSummary;
+}

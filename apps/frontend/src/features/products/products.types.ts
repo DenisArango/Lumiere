@@ -14,3 +14,5 @@ export interface CreateProductInput {
   imageUrl?: string;
   isActive: boolean;
 }
+
+export type UpdateProductInput = Partial<CreateProductInput>;

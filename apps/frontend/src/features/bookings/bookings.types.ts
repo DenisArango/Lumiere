@@ -35,7 +35,22 @@ export interface Order {
   discountAmount: string;
   totalAmount: string;
   qrCode: string | null;
+  pointsEarned?: number;
+  pointsRedeemed?: number;
   createdAt: string;
   showtimeId: string;
   seats: OrderSeat[];
+}
+
+export interface AdminOrder extends Order {
+  pointsEarned: number;
+  user: { id: string; firstName: string; lastName: string; email: string };
+  showtime: { startTime: string; movie: { id: string; title: string; posterUrl: string | null } };
+  payment: { provider: "STRIPE" | "PAYPAL"; status: "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED" } | null;
+}
+
+export interface ListAllOrdersParams {
+  page?: number;
+  pageSize?: number;
+  status?: OrderStatus;
 }

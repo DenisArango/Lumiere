@@ -31,3 +31,5 @@ export interface CreatePromotionInput {
   isActive: boolean;
   rules: PromotionRule[];
 }
+
+export type UpdatePromotionInput = Partial<Omit<CreatePromotionInput, "code" | "discountType">>;

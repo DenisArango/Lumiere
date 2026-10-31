@@ -39,7 +39,7 @@ export function MovieCard({ movie, index }: { movie: MovieSummary; index: number
                 "radial-gradient(280px circle at var(--x, 50%) var(--y, 50%), color-mix(in srgb, var(--lumiere-accent-gold) 25%, transparent), transparent 70%)",
             }}
           />
-          <span className="reel-index absolute left-2 top-2 z-10 text-sm text-white/80" style={{ textShadow: "0 1px 4px rgb(0 0 0 / 0.6)" }}>
+          <span className="reel-index absolute left-2 top-2 z-10 bg-base/80 px-1.5 py-0.5 text-sm text-ink">
             {String(index + 1).padStart(2, "0")}
           </span>
           {movie.posterUrl ? (

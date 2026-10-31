@@ -33,3 +33,8 @@ export async function updateMovie(id: string, input: UpdateMovieInput): Promise<
   const { data } = await apiClient.patch<{ movie: MovieDetail }>(`/movies/${id}`, input);
   return data.movie;
 }
+
+export async function createGenre(name: string): Promise<Genre> {
+  const { data } = await apiClient.post<{ genre: Genre }>("/genres", { name });
+  return data.genre;
+}

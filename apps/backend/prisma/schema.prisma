@@ -359,6 +359,8 @@ model Order {
   totalAmount     Decimal     @db.Decimal(10, 2)
   qrCode          String?     @unique
   checkedInAt     DateTime?
+  pointsEarned    Int         @default(0)
+  pointsRedeemed  Int         @default(0)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
@@ -511,4 +513,20 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Webhooks de proveedores de pago: registro de eventos ya procesados
+// ---------------------------------------------------------------------------
+
+/// Los proveedores reintentan y a veces repiten eventos. Guardar el id del evento
+/// permite ignorar duplicados; ademas, los manejadores son idempotentes por si solos.
+model WebhookEvent {
+  id          String          @id
+  provider    PaymentProvider
+  type        String
+  processedAt DateTime        @default(now())
+
+  @@index([processedAt])
+  @@map("webhook_events")
 }

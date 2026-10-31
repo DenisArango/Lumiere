@@ -1,0 +1,82 @@
+# Blueprint de Render para Lumiere: base de datos + Redis + un servicio web (sitio + API).
+# Guia paso a paso: docs/09-despliegue-render.md
+#
+# Las variables con `sync: false` son SECRETOS o dependen de tu cuenta: Render te las pide al crear el Blueprint
+# y nunca viven en este archivo.
+
+databases:
+  - name: lumiere-db
+    databaseName: lumiere
+    user: lumiere
+    # OJO: la base GRATUITA de Render se elimina a los 30 dias. Sirve para una demostracion; para algo real usa un plan de pago.
+    plan: free
+
+services:
+  # Redis (Key Value): bloqueo de butacas, limites de peticiones y colas. noeviction: nunca debe borrar llaves por memoria.
+  - type: keyvalue
+    name: lumiere-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+    ipAllowList: [] # solo accesible desde tus servicios de Render
+
+  - type: web
+    name: lumiere
+    runtime: docker
+    plan: free # se "duerme" tras 15 min sin trafico y tarda ~1 min en despertar; para uso real, plan Starter
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lumiere-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: lumiere-redis
+          property: connectionString
+      # Render genera secretos aleatorios fuertes (el backend exige 32+ caracteres).
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      # URL publica del servicio, p. ej. https://lumiere.onrender.com (se completa despues del primer despliegue).
+      - key: CORS_ORIGIN
+        sync: false
+
+      # --- Moneda: el programa trabaja en quetzales; cada proveedor cobra en la moneda de tu cuenta.
+      - key: PAYMENT_CURRENCY
+        value: GTQ
+      - key: STRIPE_CURRENCY
+        value: MXN
+      - key: STRIPE_RATE # quetzales por 1 peso mexicano: confirma el valor con quien lleve las finanzas
+        value: "0.42"
+      - key: PAYPAL_CURRENCY
+        value: USD
+      - key: PAYPAL_RATE # quetzales por 1 dolar
+        value: "7.7"
+
+      # --- Stripe
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+
+      # --- PayPal (sandbox para pruebas; "live" solo con credenciales de produccion)
+      - key: PAYPAL_ENV
+        value: sandbox
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+
+      # --- Primer super administrador (solo se usa si todavia no existe ninguno; quitalas despues del primer arranque)
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false

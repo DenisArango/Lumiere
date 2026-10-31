@@ -1,9 +1,10 @@
-import type { Order } from "@prisma/client";
+import type { Order, OrderStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { env } from "@/config/env";
 import { acquireSeatLock, releaseSeatLockKey } from "@/lib/seat-lock";
 import { emitSeatEvent } from "@/lib/socket-server";
-import { ConflictError, ForbiddenError, NotFoundError } from "@/utils/app-error";
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "@/utils/app-error";
+import { POINTS_PER_DISCOUNT_UNIT, redeemableDiscountUnits } from "@/modules/users/loyalty";
 import { calculateDiscount, getApplicablePromotion } from "@/modules/promotions/promotion.service";
 import { paginate, toSkipTake, type PaginatedResult } from "@/utils/pagination";
 import type { CreateOrderInput } from "@/modules/bookings/booking.schema";
@@ -26,9 +27,36 @@ export async function sweepExpiredLocks(showtimeId: string): Promise<void> {
 
   if (expired.length === 0) return;
 
-  await prisma.showtimeSeat.updateMany({
-    where: { id: { in: expired.map((s) => s.id) } },
-    data: { status: "AVAILABLE", lockedByUserId: null, lockExpiresAt: null },
+  const expiredIds = expired.map((s) => s.id);
+
+  // OrderSeat.showtimeSeatId es unico: si la fila de una orden pendiente vencida se queda, esa
+  // butaca no se puede volver a ordenar nunca (500). Se libera junto con la butaca, y la orden
+  // huerfana pasa a EXPIRED.
+  await prisma.$transaction(async (tx) => {
+    const stale = await tx.orderSeat.findMany({
+      where: { showtimeSeatId: { in: expiredIds }, order: { status: "PENDING" } },
+      select: { orderId: true },
+    });
+    const staleOrders = await tx.order.findMany({
+      where: { id: { in: [...new Set(stale.map((s) => s.orderId))] }, status: "PENDING", pointsRedeemed: { gt: 0 } },
+      select: { userId: true, pointsRedeemed: true },
+    });
+    for (const o of staleOrders) {
+      await tx.user.update({ where: { id: o.userId }, data: { loyaltyPoints: { increment: o.pointsRedeemed } } });
+    }
+    await tx.orderSeat.deleteMany({
+      where: { showtimeSeatId: { in: expiredIds }, order: { status: "PENDING" } },
+    });
+    if (stale.length > 0) {
+      await tx.order.updateMany({
+        where: { id: { in: [...new Set(stale.map((s) => s.orderId))] }, status: "PENDING" },
+        data: { status: "EXPIRED" },
+      });
+    }
+    await tx.showtimeSeat.updateMany({
+      where: { id: { in: expiredIds } },
+      data: { status: "AVAILABLE", lockedByUserId: null, lockExpiresAt: null },
+    });
   });
 
   emitSeatEvent(showtimeId, "seat:released", { seatIds: expired.map((s) => s.id), reason: "expired" });
@@ -70,6 +98,9 @@ export async function lockSeats(showtimeId: string, seatIds: string[], userId: s
   const showtime = await prisma.showtime.findUnique({ where: { id: showtimeId } });
   if (!showtime || showtime.status !== "SCHEDULED") {
     throw new NotFoundError("Función");
+  }
+  if (showtime.startTime <= new Date()) {
+    throw new ConflictError("Esta función ya comenzó");
   }
 
   const seats = await prisma.showtimeSeat.findMany({
@@ -140,6 +171,12 @@ export async function createOrder(userId: string, input: CreateOrderInput) {
   if (!showtime) {
     throw new NotFoundError("Función");
   }
+  if (showtime.status !== "SCHEDULED") {
+    throw new ConflictError("Esta función ya no está disponible");
+  }
+  if (showtime.startTime <= new Date()) {
+    throw new ConflictError("Esta función ya comenzó");
+  }
 
   const seats = await prisma.showtimeSeat.findMany({
     where: { showtimeId: input.showtimeId, id: { in: input.seatIds } },
@@ -194,10 +231,52 @@ export async function createOrder(userId: string, input: CreateOrderInput) {
     discountAmount = calculateDiscount(promotion, subtotal);
   }
 
+  // Canje de puntos: se valida contra el saldo real y se limita a la mitad de lo que queda por pagar.
+  let pointsRedeemed = 0;
+  if (input.redeemPoints && input.redeemPoints > 0) {
+    const member = await prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { loyaltyMember: true, loyaltyPoints: true },
+    });
+    if (!member.loyaltyMember) {
+      throw new ValidationError("Únete al programa de puntos para poder canjearlos");
+    }
+    if (input.redeemPoints % POINTS_PER_DISCOUNT_UNIT !== 0) {
+      throw new ValidationError(`Los puntos se canjean en múltiplos de ${POINTS_PER_DISCOUNT_UNIT}`);
+    }
+    const maxUnits = redeemableDiscountUnits(member.loyaltyPoints, subtotal - discountAmount);
+    if (input.redeemPoints / POINTS_PER_DISCOUNT_UNIT > maxUnits) {
+      throw new ValidationError(`En esta compra puedes canjear hasta ${maxUnits * POINTS_PER_DISCOUNT_UNIT} puntos`);
+    }
+    pointsRedeemed = input.redeemPoints;
+    discountAmount += pointsRedeemed / POINTS_PER_DISCOUNT_UNIT;
+  }
+
   const order = await prisma.$transaction(async (tx) => {
+    // Autocuracion de datos previos al arreglo: ordenes ya cancelladas/reembolsadas/expiradas pudieron
+    // dejar su fila order_seats (unica por butaca) y bloquear para siempre la recompra de esa butaca.
+    await tx.orderSeat.deleteMany({
+      where: {
+        showtimeSeatId: { in: seats.map((s) => s.id) },
+        order: { status: { in: ["CANCELLED", "REFUNDED", "EXPIRED"] } },
+      },
+    });
+
+    if (pointsRedeemed > 0) {
+      // Condicionado al saldo: dos compras simultaneas no pueden gastar los mismos puntos.
+      const spent = await tx.user.updateMany({
+        where: { id: userId, loyaltyPoints: { gte: pointsRedeemed } },
+        data: { loyaltyPoints: { decrement: pointsRedeemed } },
+      });
+      if (spent.count === 0) {
+        throw new ConflictError("Ya no tienes puntos suficientes para este canje");
+      }
+    }
+
     const created = await tx.order.create({
       data: {
         userId,
+        pointsRedeemed,
         showtimeId: input.showtimeId,
         status: "PENDING",
         subtotal,
@@ -240,6 +319,11 @@ export async function cancelOrder(orderId: string, userId: string, isStaff: bool
       where: { id: { in: showtimeSeatIds }, lockedByUserId: order.userId },
       data: { status: "AVAILABLE", lockedByUserId: null, lockExpiresAt: null },
     });
+    // Soltar la fila order_seats: su showtimeSeatId es unico y, si se queda, la butaca no se puede volver a comprar.
+    await tx.orderSeat.deleteMany({ where: { orderId } });
+    if (order.pointsRedeemed > 0) {
+      await tx.user.update({ where: { id: order.userId }, data: { loyaltyPoints: { increment: order.pointsRedeemed } } });
+    }
     return tx.order.update({ where: { id: orderId }, data: { status: "CANCELLED" } });
   });
 
@@ -279,6 +363,28 @@ export async function listMyOrders(userId: string, query: Pagination): Promise<P
       where,
       include: {
         showtime: { include: { movie: { select: { id: true, title: true, posterUrl: true } } } },
+      },
+      orderBy: { createdAt: "desc" },
+      ...toSkipTake(query),
+    }),
+    prisma.order.count({ where }),
+  ]);
+  return paginate(items, total, query);
+}
+
+/** Listado para el panel (staff): todas las ordenes, con comprador, pelicula y pago. */
+export async function listAllOrders(
+  query: Pagination & { status?: OrderStatus },
+): Promise<PaginatedResult<unknown>> {
+  const where = query.status ? { status: query.status } : {};
+  const [items, total] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, email: true } },
+        showtime: { include: { movie: { select: { id: true, title: true, posterUrl: true } } } },
+        payment: { select: { provider: true, status: true } },
+        seats: { select: { id: true } },
       },
       orderBy: { createdAt: "desc" },
       ...toSkipTake(query),

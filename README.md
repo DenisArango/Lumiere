@@ -29,7 +29,7 @@ pnpm dev:backend
 pnpm dev:frontend
 ```
 
-Backend en `http://localhost:4000` (salud: `GET /api/v1/health`). Frontend en `http://localhost:5173`. Postgres en el puerto **5433** (no 5432, para no chocar con una instalación nativa en el host) — ver [docs/backend/00-foundation.md](docs/backend/00-foundation.md).
+Backend en `http://localhost:4000` (salud: `GET /api/v1/health`). Frontend en `http://localhost:5173`. Postgres en el puerto **5433** por defecto (no 5432, para no chocar con una instalación nativa en el host). Si otro programa ya usa el 5433, crea un `.env` en la raíz con `POSTGRES_PORT=5434` (está ignorado por git) y ajusta el puerto en `DATABASE_URL` de `apps/backend/.env` — ver [docs/backend/00-foundation.md](docs/backend/00-foundation.md).
 
 ## Cuentas y datos de demostración
 
@@ -47,7 +47,7 @@ Datos creados: película **"Estación Lumière"** (en cartelera) + **"Horizonte 
 
 1. **Cartelera** (`/`, sin sesión) — debe verse la marquesina con "Estación Lumière", y el tab "Próximamente" debe mostrar "Horizonte de Cristal". Prueba el toggle de modo claro/oscuro en el header.
 2. **Detalle + reserva** — entra a "Estación Lumière" → "Ver funciones" → selecciona la función de mañana → elige un par de butacas en el mapa (nota los estilos por tipo: fila B es VIP) → "Continuar al pago".
-3. **Checkout** — inicia sesión como `cliente@lumiere.test` si no lo has hecho → agrega un "Combo Lumière" → ingresa el código `BIENVENIDA` → confirma el pago. **Esto va a fallar con un error real** (no hay credenciales sandbox de Stripe/PayPal configuradas) — es el comportamiento esperado y documentado, no un bug; confirma que el sistema intenta un cobro real en vez de simular uno falso.
+3. **Checkout** — inicia sesión como `cliente@lumiere.test` si no lo has hecho → agrega un "Combo Lumière" → ingresa el código `BIENVENIDA` → paga con la tarjeta de prueba `4242 4242 4242 4242` (cualquier fecha futura y CVC). Requiere tus claves de **prueba** de Stripe: `STRIPE_SECRET_KEY` y `STRIPE_PUBLISHABLE_KEY` en `apps/backend/.env` (ignorado por git; la clave publicable la entrega el backend al navegador en tiempo de ejecución). Sin ellas el cobro falla con un error real, nunca simula un pago. Para PayPal usa credenciales **sandbox** (`PAYPAL_CLIENT_ID` y `PAYPAL_CLIENT_SECRET` en `apps/backend/.env`; nunca las de producción) y una cuenta compradora de prueba. Para 3D Secure usa la tarjeta `4000 0027 6000 3184`. Los webhooks necesitan configuración adicional: [docs/backend/12-webhooks-3ds-paypal-y-auditoria.md](docs/backend/12-webhooks-3ds-paypal-y-auditoria.md).
 4. **Reseñas** — entra de nuevo al detalle de "Estación Lumière" y dejar una reseña con estrellas y comentario.
 5. **Mis boletos** (`/mis-ordenes`) — debe verse la orden de la reserva anterior en `PENDING` (por el pago fallido del paso 3).
 6. **Taquilla** — cierra sesión, entra como `taquilla@lumiere.test`, ve a `/taquilla`, ingresa el código `LMR-DEMO0001` → debe confirmar el boleto con los datos de la función. Vuelve a ingresar el mismo código → debe rechazarlo por ya usado.
@@ -60,3 +60,7 @@ apps/backend/   API REST (Node.js + Express + TypeScript + Prisma + PostgreSQL)
 apps/frontend/  SPA (React + Vite + TypeScript)
 docs/           Documentación completa del proyecto
 ```
+
+## Despliegue
+
+Guía completa para publicar en Render (Blueprint `render.yaml` + `Dockerfile`): [docs/09-despliegue-render.md](docs/09-despliegue-render.md).

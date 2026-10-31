@@ -1,6 +1,14 @@
 import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchMyOrders, fetchSeatMap, lockSeats, releaseSeats } from "@/features/bookings/bookings.api";
+import {
+  fetchAllOrders,
+  fetchMyOrders,
+  fetchSeatMap,
+  lockSeats,
+  refundOrder,
+  releaseSeats,
+} from "@/features/bookings/bookings.api";
+import type { ListAllOrdersParams } from "@/features/bookings/bookings.types";
 import { joinShowtimeRoom, getSocket } from "@/lib/socket";
 
 function seatMapKey(showtimeId: string) {
@@ -61,4 +69,20 @@ export function useReleaseSeats(showtimeId: string) {
 
 export function useMyOrders() {
   return useQuery({ queryKey: ["my-orders"], queryFn: fetchMyOrders });
+}
+
+export function useAllOrders(params: ListAllOrdersParams) {
+  return useQuery({
+    queryKey: ["orders", "all", params],
+    queryFn: () => fetchAllOrders(params),
+    placeholderData: (previous) => previous,
+  });
+}
+
+export function useRefundOrder() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: string) => refundOrder(orderId),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["orders"] }),
+  });
 }

@@ -6,12 +6,18 @@ import type {
   UpdateReviewInput,
 } from "@/modules/reviews/review.schema";
 import type { Pagination } from "@/utils/pagination";
+import type { ListAllReviewsQuery } from "@/modules/reviews/review.schema";
 
 const STAFF_ROLES = new Set(["SUPER_ADMIN", "CINEMA_MANAGER"]);
 
 export async function listByMovie(req: Request, res: Response): Promise<void> {
   const query = req.query as unknown as Pagination;
   const result = await reviewService.listReviewsByMovie(req.params.movieId as string, query);
+  res.status(200).json(result);
+}
+
+export async function listAll(req: Request, res: Response): Promise<void> {
+  const result = await reviewService.listAllReviews(req.query as unknown as ListAllReviewsQuery);
   res.status(200).json(result);
 }
 

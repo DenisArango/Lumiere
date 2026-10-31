@@ -11,7 +11,8 @@ import { MyOrdersPage } from "@/pages/my-orders";
 import { CinemasPage } from "@/pages/cinemas";
 import { LoginPage } from "@/pages/login";
 import { RegisterPage } from "@/pages/register";
-import { WipPage } from "@/pages/wip";
+import { NotFoundPage } from "@/pages/not-found";
+import { PersonDetailPage } from "@/pages/person-detail";
 import { BoxOfficePage } from "@/pages/box-office";
 import { useAuthStore } from "@/features/auth/auth.store";
 
@@ -54,6 +55,14 @@ const ProductFormPage = lazy(() =>
   import("@/pages/admin/product-form").then((m) => ({ default: m.ProductFormPage })),
 );
 
+const OrdersListPage = lazy(() => import("@/pages/admin/orders-list").then((m) => ({ default: m.OrdersListPage })));
+const ReviewsModerationPage = lazy(() =>
+  import("@/pages/admin/reviews-moderation").then((m) => ({ default: m.ReviewsModerationPage })),
+);
+const UsersListPage = lazy(() => import("@/pages/admin/users-list").then((m) => ({ default: m.UsersListPage })));
+const AuditLogPage = lazy(() => import("@/pages/admin/audit-log").then((m) => ({ default: m.AuditLogPage })));
+const CatalogPage = lazy(() => import("@/pages/admin/catalog").then((m) => ({ default: m.CatalogPage })));
+
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const isInitializing = useAuthStore((s) => s.isInitializing);
@@ -81,6 +90,7 @@ export function App() {
         <Route index element={<HomePage />} />
         <Route path="peliculas/:id" element={<MovieDetailPage />} />
         <Route path="peliculas/:id/funciones" element={<ShowtimesPage />} />
+        <Route path="personas/:id" element={<PersonDetailPage />} />
         <Route path="cines" element={<CinemasPage />} />
         <Route path="iniciar-sesion" element={<LoginPage />} />
         <Route path="registro" element={<RegisterPage />} />
@@ -125,14 +135,22 @@ export function App() {
           <Route path="cines" element={<CinemasListPage />} />
           <Route path="cines/nuevo" element={<CinemaFormPage />} />
           <Route path="cines/:id" element={<CinemaDetailPage />} />
+          <Route path="cines/:id/editar" element={<CinemaFormPage />} />
           <Route path="funciones" element={<ShowtimesListPage />} />
           <Route path="funciones/nueva" element={<ShowtimeFormPage />} />
           <Route path="promociones" element={<PromotionsListPage />} />
           <Route path="promociones/nueva" element={<PromotionFormPage />} />
+          <Route path="promociones/:id/editar" element={<PromotionFormPage />} />
           <Route path="productos" element={<ProductsListPage />} />
           <Route path="productos/nuevo" element={<ProductFormPage />} />
+          <Route path="productos/:id/editar" element={<ProductFormPage />} />
+          <Route path="ordenes" element={<OrdersListPage />} />
+          <Route path="resenas" element={<ReviewsModerationPage />} />
+          <Route path="catalogo" element={<CatalogPage />} />
+          <Route path="usuarios" element={<UsersListPage />} />
+          <Route path="auditoria" element={<AuditLogPage />} />
         </Route>
-        <Route path="*" element={<WipPage title="Página no encontrada" />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

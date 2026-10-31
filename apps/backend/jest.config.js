@@ -9,4 +9,7 @@ module.exports = {
   setupFiles: ["<rootDir>/../jest.setup.js"],
   testMatch: ["**/*.test.ts"],
   clearMocks: true,
+  // La primera peticion de cada suite conecta Prisma/Redis y, tras editar codigo, ts-jest recompila en frio:
+  // con el limite por defecto (5 s) esa primera prueba fallaba de forma intermitente sin ser un error real.
+  testTimeout: 20000,
 };

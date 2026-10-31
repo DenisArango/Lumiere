@@ -10,7 +10,7 @@ import type {
 
 export async function listCinemas(query: ListCinemasQuery): Promise<PaginatedResult<Cinema>> {
   const where = {
-    isActive: true,
+    ...(query.includeInactive ? {} : { isActive: true }),
     ...(query.city ? { city: { equals: query.city, mode: "insensitive" as const } } : {}),
     ...(query.search
       ? { name: { contains: query.search, mode: "insensitive" as const } }

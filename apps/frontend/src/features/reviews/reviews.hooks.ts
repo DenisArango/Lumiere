@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createReview, deleteReview, fetchReviews, updateReview } from "@/features/reviews/reviews.api";
-import type { CreateReviewInput } from "@/features/reviews/reviews.types";
+import {
+  createReview,
+  deleteReview,
+  fetchAllReviews,
+  fetchReviews,
+  moderateReview,
+  updateReview,
+} from "@/features/reviews/reviews.api";
+import type { CreateReviewInput, ListAllReviewsParams } from "@/features/reviews/reviews.types";
 
 export function useReviews(movieId: string | undefined) {
   return useQuery({
@@ -39,6 +46,26 @@ export function useDeleteReview(movieId: string) {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["reviews", movieId] });
       void queryClient.invalidateQueries({ queryKey: ["movie", movieId] });
+    },
+  });
+}
+
+export function useAllReviews(params: ListAllReviewsParams) {
+  return useQuery({
+    queryKey: ["reviews", "all", params],
+    queryFn: () => fetchAllReviews(params),
+    placeholderData: (previous) => previous,
+  });
+}
+
+export function useModerateReview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ reviewId, isApproved }: { reviewId: string; isApproved: boolean }) =>
+      moderateReview(reviewId, isApproved),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["reviews"] });
+      void queryClient.invalidateQueries({ queryKey: ["movie"] });
     },
   });
 }

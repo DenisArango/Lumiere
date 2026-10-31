@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { User } from "@/features/auth/auth.types";
-import { apiFetchMe, apiLogin, apiLogout, apiRegister } from "@/features/auth/auth.api";
+import { apiFetchMe, apiJoinLoyalty, apiLogin, apiLogout, apiRegister } from "@/features/auth/auth.api";
 import type { LoginInput, RegisterInput } from "@/features/auth/auth.types";
 
 interface AuthState {
@@ -12,6 +12,9 @@ interface AuthState {
   login: (input: LoginInput) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
+  joinLoyalty: () => Promise<void>;
+  /** Vuelve a leer al usuario (ej. para refrescar sus puntos tras una compra). */
+  refreshUser: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -53,5 +56,18 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     await apiLogout();
     set({ user: null });
+  },
+
+  joinLoyalty: async () => {
+    const user = await apiJoinLoyalty();
+    set({ user });
+  },
+
+  refreshUser: async () => {
+    try {
+      set({ user: await apiFetchMe() });
+    } catch {
+      // Si la sesion expiro, el interceptor de api-client ya se encarga del 401.
+    }
   },
 }));

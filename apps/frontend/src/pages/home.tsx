@@ -17,30 +17,54 @@ const TABS: { value: MovieStatus; label: string }[] = [
  * con el titulo apoyado abajo-izquierda, como una entrada de cine real -
  * no el patron generico de heading centrado + boton centrado + blob de
  * gradiente detras (ver memoria sobre composicion).
+ *
+ * Sin imagen de fondo (backdrop) el hero no puede quedarse como un vacio
+ * oscuro: el poster pasa a ser protagonista, enmarcado, y su propia
+ * imagen desenfocada tine el fondo. El haz del proyector (el motivo de la
+ * marca) cruza el hero en ambos casos.
  */
 function Marquee({ movie }: { movie: MovieSummary }) {
+  const hasBackdrop = Boolean(movie.backdropUrl);
+  const showPoster = !hasBackdrop && Boolean(movie.posterUrl);
+
   return (
     <section className="relative overflow-hidden border-b border-hairline">
       <div className="absolute inset-0">
-        {movie.backdropUrl ? (
-          <img src={movie.backdropUrl} alt="" className="size-full object-cover" />
+        {hasBackdrop ? (
+          <img src={movie.backdropUrl ?? ""} alt="" className="size-full object-cover" />
         ) : (
-          <div className="size-full bg-elevated" />
+          <>
+            <div className="size-full bg-elevated" />
+            {movie.posterUrl && (
+              <img
+                src={movie.posterUrl}
+                alt=""
+                aria-hidden
+                className="absolute inset-0 size-full scale-125 object-cover opacity-25 blur-3xl"
+              />
+            )}
+          </>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-base via-base/70 to-base/10" />
         <div className="absolute inset-0 bg-gradient-to-r from-base/60 via-transparent to-transparent" />
+        <div className="projector-beam pointer-events-none absolute -right-10 -top-24 h-[150%] w-[75%]" aria-hidden />
       </div>
 
-      <div className="relative mx-auto flex min-h-[60vh] max-w-6xl flex-col justify-end px-4 py-10 sm:px-6 sm:py-14">
-        <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="max-w-xl">
+      <div
+        className={cn(
+          "relative mx-auto grid min-h-[60vh] max-w-6xl items-end gap-10 px-4 py-10 sm:px-6 sm:py-14",
+          showPoster && "md:grid-cols-[1fr_290px]",
+        )}
+      >
+        <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="max-w-3xl">
           <p className="eyebrow">Ahora en cartelera</p>
-          <h1 className="mt-2 font-display text-4xl italic leading-[1.05] text-ink sm:text-6xl">{movie.title}</h1>
+          <h1 className="mt-2 text-balance font-display text-4xl italic leading-[1.05] text-ink sm:text-5xl lg:text-6xl">{movie.title}</h1>
           <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-ink-muted">
             <span className="border border-hairline px-1.5 py-0.5 text-xs font-medium">{movie.rating.code}</span>
             <span>{movie.durationMinutes} min</span>
             {movie.genres[0] && <span>{movie.genres[0].name}</span>}
           </div>
-          <div className="mt-7 flex gap-3">
+          <div className="mt-7 flex flex-wrap gap-3">
             <Button asChild size="lg">
               <Link to={`/peliculas/${movie.id}/funciones`}>Ver funciones</Link>
             </Button>
@@ -49,6 +73,23 @@ function Marquee({ movie }: { movie: MovieSummary }) {
             </Button>
           </div>
         </motion.div>
+
+        {showPoster && (
+          <motion.div
+            initial={{ opacity: 0, y: 24, rotate: 0 }}
+            animate={{ opacity: 1, y: 0, rotate: 1.5 }}
+            transition={{ duration: 0.7, delay: 0.15 }}
+            className="hidden aspect-2/3 w-full overflow-hidden border border-gold/60 bg-surface p-1.5 md:block"
+          >
+            <img
+              src={movie.posterUrl ?? ""}
+              alt={`Póster de ${movie.title}`}
+              width={290}
+              height={435}
+              className="size-full object-cover"
+            />
+          </motion.div>
+        )}
       </div>
     </section>
   );
@@ -79,8 +120,13 @@ export function HomePage() {
   const [status, setStatus] = useState<MovieStatus>("IN_THEATERS");
   const { data, isLoading, isError } = useMovies({ status, pageSize: 24 });
 
-  const featured = status === "IN_THEATERS" ? data?.items[0] : undefined;
-  const rest = featured ? data?.items.slice(1) : data?.items;
+  // La destacada es la primera con imagen (fondo o poster); si ninguna la tiene, la primera de la lista.
+  const items = data?.items;
+  const featured =
+    status === "IN_THEATERS" && items
+      ? (items.find((m) => m.backdropUrl) ?? items.find((m) => m.posterUrl) ?? items[0])
+      : undefined;
+  const rest = featured ? items?.filter((m) => m.id !== featured.id) : items;
 
   return (
     <div>

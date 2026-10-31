@@ -25,6 +25,40 @@ const DEMO_QR_CODE = "LMR-DEMO0001";
 async function main(): Promise<void> {
   const passwordHash = await argon2.hash(DEMO_PASSWORD);
 
+  // --- Limpieza previa: lo que cuelga de los datos demo ----------------------
+  // Este script borra y recrea cuentas, peliculas, cine y funcion. Si el entorno ya tuvo uso (ordenes,
+  // pagos, resenas, bitacora), esos borrados chocaban con claves foraneas y el seed dejaba de poder
+  // re-ejecutarse. Se limpia primero, en orden seguro, solo lo que depende de los datos demo.
+  const demoUsers = await prisma.user.findMany({
+    where: { email: { in: ["admin@lumiere.test", "taquilla@lumiere.test", "cliente@lumiere.test"] } },
+    select: { id: true },
+  });
+  const demoUserIds = demoUsers.map((u) => u.id);
+  const demoMovies = await prisma.movie.findMany({
+    where: { title: { in: ["Estación Lumière", "Horizonte de Cristal"] } },
+    select: { id: true },
+  });
+  const demoShowtimes = await prisma.showtime.findMany({
+    where: { OR: [{ movieId: { in: demoMovies.map((m) => m.id) } }, { room: { cinema: { name: "Lumière Reforma" } } }] },
+    select: { id: true },
+  });
+  const staleOrders = await prisma.order.findMany({
+    where: { OR: [{ userId: { in: demoUserIds } }, { showtimeId: { in: demoShowtimes.map((st) => st.id) } }] },
+    select: { id: true },
+  });
+  const staleOrderIds = staleOrders.map((o) => o.id);
+  await prisma.orderSeat.deleteMany({ where: { orderId: { in: staleOrderIds } } });
+  await prisma.orderItem.deleteMany({ where: { orderId: { in: staleOrderIds } } });
+  await prisma.payment.deleteMany({ where: { orderId: { in: staleOrderIds } } });
+  await prisma.order.deleteMany({ where: { id: { in: staleOrderIds } } });
+  const demoShowtimeIds = demoShowtimes.map((st) => st.id);
+  await prisma.showtimeSeat.deleteMany({ where: { showtimeId: { in: demoShowtimeIds } } });
+  await prisma.showtime.deleteMany({ where: { id: { in: demoShowtimeIds } } });
+  await prisma.review.deleteMany({
+    where: { OR: [{ userId: { in: demoUserIds } }, { movieId: { in: demoMovies.map((m) => m.id) } }] },
+  });
+  await prisma.auditLog.updateMany({ where: { userId: { in: demoUserIds } }, data: { userId: null } });
+
   // --- Cuentas de prueba, una por rol relevante -----------------------
   await prisma.user.deleteMany({
     where: { email: { in: ["admin@lumiere.test", "taquilla@lumiere.test", "cliente@lumiere.test"] } },

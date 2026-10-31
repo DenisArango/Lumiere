@@ -6,6 +6,7 @@ import type {
   ReleaseSeatsInput,
 } from "@/modules/bookings/booking.schema";
 import type { Pagination } from "@/utils/pagination";
+import type { ListAllOrdersQuery } from "@/modules/bookings/booking.schema";
 
 const STAFF_ROLES = new Set(["SUPER_ADMIN", "CINEMA_MANAGER", "BOX_OFFICE"]);
 
@@ -40,6 +41,11 @@ export async function cancelOrder(req: Request, res: Response): Promise<void> {
   const isStaff = STAFF_ROLES.has(req.user!.role);
   const order = await bookingService.cancelOrder(req.params.id as string, req.user!.id, isStaff);
   res.status(200).json({ order });
+}
+
+export async function listAllOrders(req: Request, res: Response): Promise<void> {
+  const result = await bookingService.listAllOrders(req.query as unknown as ListAllOrdersQuery);
+  res.status(200).json(result);
 }
 
 export async function getOrderById(req: Request, res: Response): Promise<void> {

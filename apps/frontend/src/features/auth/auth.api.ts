@@ -19,3 +19,8 @@ export async function apiFetchMe(): Promise<User> {
   const { data } = await apiClient.get<{ user: User }>("/auth/me");
   return data.user;
 }
+
+export async function apiJoinLoyalty(): Promise<User> {
+  const { data } = await apiClient.post<{ user: User }>("/users/me/loyalty");
+  return data.user;
+}

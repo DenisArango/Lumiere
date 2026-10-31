@@ -14,6 +14,14 @@ export const moderateReviewSchema = z.object({
 
 export const listReviewsQuerySchema = paginationSchema;
 
+export const listAllReviewsQuerySchema = paginationSchema.extend({
+  isApproved: z
+    .enum(["true", "false"])
+    .transform((v) => v === "true")
+    .optional(),
+});
+
+export type ListAllReviewsQuery = z.infer<typeof listAllReviewsQuerySchema>;
 export type CreateReviewInput = z.infer<typeof createReviewSchema>;
 export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
 export type ModerateReviewInput = z.infer<typeof moderateReviewSchema>;

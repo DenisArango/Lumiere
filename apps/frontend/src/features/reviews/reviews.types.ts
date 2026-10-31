@@ -16,3 +16,13 @@ export interface CreateReviewInput {
   rating: number;
   comment?: string;
 }
+
+export interface AdminReview extends Review {
+  movie: { id: string; title: string };
+}
+
+export interface ListAllReviewsParams {
+  page?: number;
+  pageSize?: number;
+  isApproved?: boolean;
+}

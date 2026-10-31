@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { ConflictError, NotFoundError } from "@/utils/app-error";
 import type { CreatePromotionInput, UpdatePromotionInput } from "@/modules/promotions/promotion.schema";
 
-export async function listActivePromotions() {
+export async function listPromotions(includeInactive = false) {
   const now = new Date();
   return prisma.promotion.findMany({
-    where: { isActive: true, startDate: { lte: now }, endDate: { gte: now } },
+    where: includeInactive ? {} : { isActive: true, startDate: { lte: now }, endDate: { gte: now } },
     include: { rules: true },
     orderBy: { startDate: "desc" },
   });

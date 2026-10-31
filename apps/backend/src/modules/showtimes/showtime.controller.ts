@@ -25,6 +25,6 @@ export async function create(req: Request, res: Response): Promise<void> {
 
 export async function update(req: Request, res: Response): Promise<void> {
   const input = req.body as UpdateShowtimeInput;
-  const showtime = await showtimeService.updateShowtime(req.params.id as string, input);
-  res.status(200).json({ showtime });
+  const { showtime, cancellation } = await showtimeService.updateShowtime(req.params.id as string, input);
+  res.status(200).json(cancellation ? { showtime, cancellation } : { showtime });
 }

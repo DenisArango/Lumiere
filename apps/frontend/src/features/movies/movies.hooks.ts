@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createMovie, fetchGenres, fetchMovieById, fetchMovies, updateMovie } from "@/features/movies/movies.api";
+import { createGenre, createMovie, fetchGenres, fetchMovieById, fetchMovies, updateMovie } from "@/features/movies/movies.api";
 import type { CreateMovieInput, ListMoviesParams, UpdateMovieInput } from "@/features/movies/movies.types";
 
 export function useMovies(params: ListMoviesParams) {
@@ -38,5 +38,13 @@ export function useUpdateMovie(id: string) {
       void queryClient.invalidateQueries({ queryKey: ["movies"] });
       void queryClient.invalidateQueries({ queryKey: ["movie", id] });
     },
+  });
+}
+
+export function useCreateGenre() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (name: string) => createGenre(name),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["genres"] }),
   });
 }

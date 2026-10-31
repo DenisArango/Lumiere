@@ -6,8 +6,14 @@ import { Footer } from "@/components/layout/footer";
 export function RootLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-base text-ink">
+      <a
+        href="#contenido"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[1000] focus:bg-gold focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-black"
+      >
+        Saltar al contenido
+      </a>
       <Header />
-      <main className="flex-1">
+      <main id="contenido" tabIndex={-1} className="flex-1 outline-none">
         <Outlet />
       </main>
       <Footer />

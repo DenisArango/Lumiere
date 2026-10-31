@@ -3,6 +3,7 @@ import { validate } from "@/middleware/validate";
 import { authenticate } from "@/middleware/authenticate";
 import { authorize } from "@/middleware/authorize";
 import { csrfProtection } from "@/middleware/csrf";
+import { auditTrail } from "@/middleware/audit-trail";
 import { catchAsync } from "@/utils/catch-async";
 import {
   createPersonSchema,
@@ -24,6 +25,7 @@ personRouter.post(
   authorize(...staffRoles),
   csrfProtection,
   validate(createPersonSchema),
+  auditTrail("person.create", "Person"),
   catchAsync(personController.create),
 );
 
@@ -33,5 +35,6 @@ personRouter.patch(
   authorize(...staffRoles),
   csrfProtection,
   validate(updatePersonSchema),
+  auditTrail("person.update", "Person"),
   catchAsync(personController.update),
 );

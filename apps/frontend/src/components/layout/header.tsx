@@ -58,12 +58,15 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <ThemeToggle />
           {user ? (
             <DropdownMenu.Root>
               <DropdownMenu.Trigger asChild>
-                <button className="flex size-9 items-center justify-center border border-hairline text-ink transition-colors hover:border-gold hover:text-gold">
+                <button
+                  aria-label="Menú de tu cuenta"
+                  className="flex size-9 items-center justify-center border border-hairline text-ink transition-colors hover:border-gold hover:text-gold"
+                >
                   <UserIcon className="size-4" />
                 </button>
               </DropdownMenu.Trigger>
@@ -78,12 +81,17 @@ export function Header() {
                       {user.firstName} {user.lastName}
                     </p>
                     <p className="truncate text-xs text-ink-muted">{user.email}</p>
+                    {user.loyaltyMember && (
+                      <p className="mt-1.5 text-xs font-semibold text-gold">
+                        {user.loyaltyPoints.toLocaleString("es")} puntos Lumière
+                      </p>
+                    )}
                   </div>
                   <DropdownMenu.Separator className="my-1 h-px bg-hairline" />
                   <DropdownMenu.Item asChild>
                     <Link
                       to="/mis-ordenes"
-                      className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm text-ink outline-none hover:bg-surface"
+                      className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm text-ink outline-none hover:bg-surface data-[highlighted]:bg-surface data-[highlighted]:text-gold"
                     >
                       <Ticket className="size-4" /> Mis boletos
                     </Link>
@@ -92,7 +100,7 @@ export function Header() {
                     <DropdownMenu.Item asChild>
                       <Link
                         to="/admin"
-                        className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm text-ink outline-none hover:bg-surface"
+                        className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm text-ink outline-none hover:bg-surface data-[highlighted]:bg-surface data-[highlighted]:text-gold"
                       >
                         Panel de gestión
                       </Link>
@@ -102,7 +110,7 @@ export function Header() {
                     <DropdownMenu.Item asChild>
                       <Link
                         to="/taquilla"
-                        className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm text-ink outline-none hover:bg-surface"
+                        className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm text-ink outline-none hover:bg-surface data-[highlighted]:bg-surface data-[highlighted]:text-gold"
                       >
                         Taquilla
                       </Link>
@@ -111,7 +119,7 @@ export function Header() {
                   <DropdownMenu.Separator className="my-1 h-px bg-hairline" />
                   <DropdownMenu.Item
                     onSelect={() => void logout()}
-                    className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm text-danger outline-none hover:bg-surface"
+                    className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm text-danger outline-none hover:bg-surface data-[highlighted]:bg-surface data-[highlighted]:text-gold"
                   >
                     <LogOut className="size-4" /> Cerrar sesión
                   </DropdownMenu.Item>
@@ -120,16 +128,38 @@ export function Header() {
             </DropdownMenu.Root>
           ) : (
             <div className="flex items-center gap-2">
-              <Button asChild variant="ghost" size="sm">
+              {/* En pantallas angostas cabe un solo boton: "Entrar" lleva al inicio de sesion, que enlaza al registro. */}
+              <Button asChild size="sm" className="sm:hidden">
+                <Link to="/iniciar-sesion">Entrar</Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
                 <Link to="/iniciar-sesion">Iniciar sesión</Link>
               </Button>
-              <Button asChild size="sm">
+              <Button asChild size="sm" className="hidden sm:inline-flex">
                 <Link to="/registro">Crear cuenta</Link>
               </Button>
             </div>
           )}
         </div>
       </div>
+      {/* Navegación en móvil: antes los enlaces solo existían desde md. */}
+      <nav aria-label="Secciones" className="flex items-center gap-6 border-t border-hairline px-4 md:hidden">
+        {NAV_LINKS.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            end={link.end}
+            className={({ isActive }) =>
+              cn(
+                "py-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-ink-muted transition-colors",
+                isActive && "text-gold",
+              )
+            }
+          >
+            {link.label}
+          </NavLink>
+        ))}
+      </nav>
     </header>
   );
 }

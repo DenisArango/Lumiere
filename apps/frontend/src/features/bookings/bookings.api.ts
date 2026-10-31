@@ -1,5 +1,11 @@
 import { apiClient } from "@/lib/api-client";
-import type { LockSeatsResult, Order, SeatMapEntry } from "@/features/bookings/bookings.types";
+import type {
+  AdminOrder,
+  ListAllOrdersParams,
+  LockSeatsResult,
+  Order,
+  SeatMapEntry,
+} from "@/features/bookings/bookings.types";
 import type { PaginatedResult } from "@/features/movies/movies.types";
 
 interface OrderWithShowtime extends Order {
@@ -32,6 +38,7 @@ export async function createOrder(input: {
   seatIds: string[];
   promotionCode?: string;
   items?: { productId: string; quantity: number }[];
+  redeemPoints?: number;
 }): Promise<Order> {
   const { data } = await apiClient.post<{ order: Order }>("/orders", input);
   return data.order;
@@ -42,12 +49,17 @@ export async function cancelOrder(orderId: string): Promise<Order> {
   return data.order;
 }
 
-export async function payOrder(orderId: string, provider: "STRIPE" | "PAYPAL", source: string): Promise<Order> {
-  const { data } = await apiClient.post<{ order: Order }>(`/orders/${orderId}/pay`, { provider, source });
+export async function fetchOrder(orderId: string): Promise<Order> {
+  const { data } = await apiClient.get<{ order: Order }>(`/orders/${orderId}`);
   return data.order;
 }
 
-export async function fetchOrder(orderId: string): Promise<Order> {
-  const { data } = await apiClient.get<{ order: Order }>(`/orders/${orderId}`);
+export async function fetchAllOrders(params: ListAllOrdersParams): Promise<PaginatedResult<AdminOrder>> {
+  const { data } = await apiClient.get<PaginatedResult<AdminOrder>>("/orders", { params });
+  return data;
+}
+
+export async function refundOrder(orderId: string): Promise<Order> {
+  const { data } = await apiClient.post<{ order: Order }>(`/orders/${orderId}/refund`);
   return data.order;
 }

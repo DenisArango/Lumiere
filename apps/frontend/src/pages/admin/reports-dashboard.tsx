@@ -70,12 +70,12 @@ export function ReportsDashboardPage() {
           <ResponsiveContainer width="100%" height={Math.max(180, mostViewed.length * 40)}>
             <BarChart data={mostViewed} layout="vertical" margin={{ left: 8, right: 24 }} barCategoryGap={10}>
               <CartesianGrid horizontal={false} stroke={GRID} strokeOpacity={0.5} />
-              <XAxis type="number" tick={{ fill: "var(--lumiere-text-secondary)", fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <XAxis type="number" tick={{ fill: "var(--lumiere-text-secondary)", fontSize: 13 }} axisLine={false} tickLine={false} allowDecimals={false} />
               <YAxis
                 type="category"
                 dataKey="title"
                 width={140}
-                tick={{ fill: "var(--lumiere-text-secondary)", fontSize: 12 }}
+                tick={{ fill: "var(--lumiere-text-secondary)", fontSize: 13 }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -97,8 +97,8 @@ export function ReportsDashboardPage() {
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={hourData} barCategoryGap={2}>
                 <CartesianGrid vertical={false} stroke={GRID} strokeOpacity={0.5} />
-                <XAxis dataKey="label" tick={{ fill: "var(--lumiere-text-secondary)", fontSize: 10 }} axisLine={false} tickLine={false} interval={2} />
-                <YAxis tick={{ fill: "var(--lumiere-text-secondary)", fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <XAxis dataKey="label" tick={{ fill: "var(--lumiere-text-secondary)", fontSize: 13 }} axisLine={false} tickLine={false} interval={2} />
+                <YAxis tick={{ fill: "var(--lumiere-text-secondary)", fontSize: 13 }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip content={<ChartTooltip suffix="boletos" />} cursor={{ fill: "var(--lumiere-border)", opacity: 0.3 }} />
                 <Bar dataKey="ticketsSold" fill={GOLD} radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -112,8 +112,8 @@ export function ReportsDashboardPage() {
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={dayData} barCategoryGap={8}>
                 <CartesianGrid vertical={false} stroke={GRID} strokeOpacity={0.5} />
-                <XAxis dataKey="label" tick={{ fill: "var(--lumiere-text-secondary)", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "var(--lumiere-text-secondary)", fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <XAxis dataKey="label" tick={{ fill: "var(--lumiere-text-secondary)", fontSize: 13 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "var(--lumiere-text-secondary)", fontSize: 13 }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip content={<ChartTooltip suffix="boletos" />} cursor={{ fill: "var(--lumiere-border)", opacity: 0.3 }} />
                 <Bar dataKey="ticketsSold" fill={GOLD} radius={[4, 4, 0, 0]} />
               </BarChart>

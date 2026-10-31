@@ -42,3 +42,12 @@ export interface CreateRoomInput {
   roomType: RoomType;
   rows: RoomRowInput[];
 }
+
+export interface UpdateCinemaInput extends Partial<CreateCinemaInput> {
+  isActive?: boolean;
+}
+
+export interface UpdateRoomInput {
+  name?: string;
+  roomType?: RoomType;
+}

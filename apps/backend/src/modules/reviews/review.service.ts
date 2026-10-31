@@ -104,3 +104,23 @@ export async function getMovieRatingSummary(movieId: string) {
     reviewCount: result._count.rating,
   };
 }
+
+/** Listado para moderacion (staff): todas las resenas, aprobadas o no, con pelicula y autor. */
+export async function listAllReviews(
+  query: Pagination & { isApproved?: boolean },
+): Promise<PaginatedResult<unknown>> {
+  const where = query.isApproved === undefined ? {} : { isApproved: query.isApproved };
+  const [items, total] = await Promise.all([
+    prisma.review.findMany({
+      where,
+      include: {
+        user: { select: authorSelect },
+        movie: { select: { id: true, title: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      ...toSkipTake(query),
+    }),
+    prisma.review.count({ where }),
+  ]);
+  return paginate(items, total, query);
+}

@@ -26,7 +26,8 @@ export function MovieDetailPage() {
 
   return (
     <div>
-      <div className="relative border-b border-hairline">
+      <div className="relative overflow-hidden border-b border-hairline">
+        <div className="projector-beam pointer-events-none absolute -right-10 -top-24 h-[150%] w-[70%]" aria-hidden />
         {movie.backdropUrl && (
           <div className="absolute inset-0">
             <img src={movie.backdropUrl} alt="" className="size-full object-cover opacity-25" />
@@ -95,7 +96,14 @@ export function MovieDetailPage() {
           <div className="mb-8 border-t border-hairline pt-6">
             <p className="eyebrow">Dirigida por</p>
             <p className="mt-2 font-display text-lg italic text-ink">
-              {movie.directors.map((d) => `${d.firstName} ${d.lastName}`).join(", ")}
+              {movie.directors.map((d, i) => (
+                <span key={d.id}>
+                  {i > 0 && ", "}
+                  <Link to={`/personas/${d.id}`} className="underline-offset-4 hover:text-gold hover:underline">
+                    {d.firstName} {d.lastName}
+                  </Link>
+                </span>
+              ))}
             </p>
           </div>
         )}
@@ -106,7 +114,9 @@ export function MovieDetailPage() {
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-muted">
               {movie.cast.map((actor) => (
                 <span key={actor.id}>
-                  {actor.firstName} {actor.lastName}
+                  <Link to={`/personas/${actor.id}`} className="text-ink underline-offset-4 hover:text-gold hover:underline">
+                    {actor.firstName} {actor.lastName}
+                  </Link>
                   {actor.characterName ? ` como ${actor.characterName}` : ""}
                 </span>
               ))}

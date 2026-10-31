@@ -3,6 +3,7 @@ import { validate } from "@/middleware/validate";
 import { authenticate } from "@/middleware/authenticate";
 import { authorize } from "@/middleware/authorize";
 import { csrfProtection } from "@/middleware/csrf";
+import { auditTrail } from "@/middleware/audit-trail";
 import { catchAsync } from "@/utils/catch-async";
 import {
   createMovieSchema,
@@ -24,6 +25,7 @@ movieRouter.post(
   authorize(...staffRoles),
   csrfProtection,
   validate(createMovieSchema),
+  auditTrail("movie.create", "Movie"),
   catchAsync(movieController.create),
 );
 
@@ -33,5 +35,6 @@ movieRouter.patch(
   authorize(...staffRoles),
   csrfProtection,
   validate(updateMovieSchema),
+  auditTrail("movie.update", "Movie"),
   catchAsync(movieController.update),
 );

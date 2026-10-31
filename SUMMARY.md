@@ -28,6 +28,9 @@
 * [Reportería](docs/backend/08-reportes.md)
 * [Pagos](docs/backend/09-pagos.md)
 * [Validación de boletos](docs/backend/10-validacion-boletos.md)
+* [Usuarios, puntos y Stripe real](docs/backend/11-usuarios-puntos-y-stripe.md)
+* [Webhooks, 3D Secure, PayPal y auditoría](docs/backend/12-webhooks-3ds-paypal-y-auditoria.md)
+* [Despliegue en Render](docs/09-despliegue-render.md)
 
 ## Frontend
 
@@ -38,3 +41,4 @@
 * [Opiniones](docs/frontend/04-opiniones.md)
 * [Dulcería](docs/frontend/05-productos-dulceria.md)
 * [Taquilla](docs/frontend/06-taquilla.md)
+* [Panel completo y Stripe](docs/frontend/07-panel-completo-y-stripe.md)

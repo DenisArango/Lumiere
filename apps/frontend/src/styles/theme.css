@@ -21,6 +21,13 @@
   --color-warning: var(--lumiere-warning);
   --color-danger: var(--lumiere-danger);
 
+  /*
+   * Nada pensado para leerse baja de 13px: el "xs" de Tailwind (12px) se sube a 13px en toda la app
+   * (menus, pestañas, pie, metadatos de listas). Un solo token en vez de parchear cada pantalla.
+   */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.25rem;
+
   --font-display: "Fraunces", Georgia, "Times New Roman", serif;
   --font-sans: "Inter", -apple-system, "Segoe UI", sans-serif;
 
@@ -97,6 +104,15 @@
     font-family: var(--font-sans);
   }
 
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+
   body {
     background-color: var(--lumiere-bg-base);
     color: var(--lumiere-text-primary);
@@ -142,12 +158,44 @@
 }
 
 @layer components {
+  /*
+   * Haz de proyector: cono de luz dorada desde la esquina superior derecha
+   * (motivo central de la marca, docs/00-brand-lumiere.md). Parpadea apenas,
+   * como una lampara de proyeccion; prefers-reduced-motion lo detiene (ver base).
+   */
+  .projector-beam {
+    background: conic-gradient(
+      from 0deg at 100% 0%,
+      transparent 196deg,
+      color-mix(in oklab, var(--lumiere-accent-gold) 30%, transparent) 222deg,
+      transparent 252deg
+    );
+    filter: blur(28px);
+    animation: beam-flicker 7s ease-in-out infinite;
+  }
+
+  @keyframes beam-flicker {
+    0%,
+    100% {
+      opacity: 0.7;
+    }
+    45% {
+      opacity: 1;
+    }
+    52% {
+      opacity: 0.82;
+    }
+    70% {
+      opacity: 0.95;
+    }
+  }
+
   /* Etiqueta pequeña tracked-uppercase tipo credito de pelicula ("DIRIGIDA POR"). */
   .eyebrow {
     font-family: var(--font-sans);
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--lumiere-accent-gold);
   }
