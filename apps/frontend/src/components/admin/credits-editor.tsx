@@ -19,6 +19,7 @@ interface CreditsEditorProps {
 
 export function CreditsEditor({ credits, onChange }: CreditsEditorProps) {
   const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
   const [creatingNew, setCreatingNew] = useState(false);
   const [newFirstName, setNewFirstName] = useState("");
   const [newLastName, setNewLastName] = useState("");
@@ -26,7 +27,7 @@ export function CreditsEditor({ credits, onChange }: CreditsEditorProps) {
   const { data: results } = useQuery({
     queryKey: ["people-search", query],
     queryFn: () => searchPeople(query),
-    enabled: query.trim().length > 1,
+    enabled: open,
   });
 
   function addPerson(person: PersonSummary) {
@@ -65,10 +66,13 @@ export function CreditsEditor({ credits, onChange }: CreditsEditorProps) {
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar director o actor por nombre…"
+          onFocus={() => setOpen(true)}
+          // Pequeño retraso: si se cerrara de inmediato, el clic en una persona de la lista no llegaría a registrarse.
+          onBlur={() => setTimeout(() => setOpen(false), 200)}
+          placeholder="Buscar o elegir director o actor del reparto existente…"
         />
-        {query.trim().length > 1 && (
-          <div className="absolute z-10 mt-1 w-full border border-hairline bg-elevated shadow-lg">
+        {open && (
+          <div className="absolute z-10 mt-1 max-h-64 w-full overflow-auto border border-hairline bg-elevated shadow-lg">
             {results?.map((p) => (
               <button
                 key={p.id}
@@ -79,7 +83,7 @@ export function CreditsEditor({ credits, onChange }: CreditsEditorProps) {
                 <Plus className="size-3.5 text-gold" /> {p.firstName} {p.lastName}
               </button>
             ))}
-            {results?.length === 0 && (
+            {results?.length === 0 && query.trim() !== "" && (
               <button
                 type="button"
                 onClick={() => {
@@ -95,6 +99,20 @@ export function CreditsEditor({ credits, onChange }: CreditsEditorProps) {
           </div>
         )}
       </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="mt-2"
+        onClick={() => {
+          setCreatingNew((v) => !v);
+          setNewFirstName(query.split(" ")[0] ?? "");
+          setNewLastName(query.split(" ").slice(1).join(" "));
+        }}
+      >
+        <UserPlus className="size-3.5" /> {creatingNew ? "Cancelar" : "Crear persona nueva"}
+      </Button>
 
       {creatingNew && (
         <div className="mt-2 flex items-end gap-2 border border-hairline p-3">

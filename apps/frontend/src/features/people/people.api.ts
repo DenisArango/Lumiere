@@ -10,7 +10,7 @@ import type {
 
 export async function searchPeople(search: string): Promise<PersonSummary[]> {
   const { data } = await apiClient.get<PaginatedResult<PersonSummary>>("/people", {
-    params: { search: search || undefined, pageSize: 10 },
+    params: { search: search || undefined, pageSize: 50 },
   });
   return data.items;
 }

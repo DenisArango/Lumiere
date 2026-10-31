@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from "@/features/auth/auth.store";
 import { useCreateGenre, useGenres } from "@/features/movies/movies.hooks";
+import { useQueryClient } from "@tanstack/react-query";
+import { createPerson } from "@/features/people/people.api";
 import { usePeople, useUpdatePerson } from "@/features/people/people.hooks";
 import type { Person } from "@/features/people/people.types";
 import { getApiErrorMessage } from "@/lib/api-client";
@@ -88,7 +90,51 @@ function PersonEditor({ person, onDone }: { person: Person; onDone: () => void }
   );
 }
 
+/** Alta de una persona nueva (director o actor): nombre y apellido bastan; el resto se completa despues con "Editar". */
+function NewPersonForm({ onDone }: { onDone: () => void }) {
+  const queryClient = useQueryClient();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!firstName.trim() || !lastName.trim()) return;
+    setSaving(true);
+    try {
+      await createPerson({ firstName: firstName.trim(), lastName: lastName.trim() });
+      await queryClient.invalidateQueries({ queryKey: ["people"] });
+      toast.success(`${firstName.trim()} ${lastName.trim()} agregado`);
+      onDone();
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "No pudimos crear a la persona"));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={(e) => void onSubmit(e)} className="mt-3 flex flex-wrap items-end gap-3 border border-hairline bg-surface p-4">
+      <div className="min-w-40 flex-1 space-y-1.5">
+        <Label htmlFor="np-first">Nombre</Label>
+        <Input id="np-first" autoComplete="off" autoFocus value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+      </div>
+      <div className="min-w-40 flex-1 space-y-1.5">
+        <Label htmlFor="np-last">Apellido</Label>
+        <Input id="np-last" autoComplete="off" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+      </div>
+      <Button type="submit" disabled={saving || !firstName.trim() || !lastName.trim()}>
+        {saving ? "Guardando…" : "Crear persona"}
+      </Button>
+      <Button type="button" variant="outline" onClick={onDone}>
+        Cancelar
+      </Button>
+    </form>
+  );
+}
+
 function PeopleSection() {
+  const [creating, setCreating] = useState(false);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -97,9 +143,15 @@ function PeopleSection() {
 
   return (
     <section aria-labelledby="people-title" className="mt-8">
-      <h2 id="people-title" className="eyebrow">
-        Directores y actores
-      </h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 id="people-title" className="eyebrow">
+          Directores y actores
+        </h2>
+        <Button type="button" size="sm" onClick={() => setCreating((v) => !v)} aria-expanded={creating}>
+          <Plus className="size-4" /> {creating ? "Cerrar" : "Nueva persona"}
+        </Button>
+      </div>
+      {creating && <NewPersonForm onDone={() => setCreating(false)} />}
 
       <form
         className="mt-3 flex gap-2"

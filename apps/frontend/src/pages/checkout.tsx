@@ -246,6 +246,7 @@ function CheckoutContent() {
                     <div key={product.id} className="flex items-center gap-3 p-4">
                       <div className="flex-1">
                         <p className="text-sm font-medium text-ink">{getProductName(product.name)}</p>
+                        {product.description && <p className="mt-0.5 text-xs text-ink-muted">Incluye: {product.description}</p>}
                         <p className="mt-1 text-sm text-gold">{formatMoney(product.price)}</p>
                       </div>
                       <button
