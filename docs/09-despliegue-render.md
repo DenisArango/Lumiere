@@ -57,7 +57,7 @@ Cuando termine, Render te da una URL como `https://lumiere-xxxx.onrender.com`.
 
 La base nace vacía (solo con idiomas, clasificaciones, géneros y tipos de butaca). Desde el panel: crea el **cine y sus salas** (con el mapa de butacas), las **películas** y las **funciones**, y los combos de dulcería.
 
-> `prisma/seed-demo.ts` (cuentas y datos de demostración) **no** se ejecuta en producción a propósito: crea cuentas con contraseña conocida.
+> Para una **demostración**, `SEED_DEMO_DATA=true` (ya viene en `render.yaml`) carga cines, películas, funciones, compras y reseñas de ejemplo y 7 cuentas demo: ver [la guía de la demostración](10-guia-demo-cliente.md). Las cuentas demo tienen contraseña conocida; para uso real pon `SEED_DEMO_DATA=false`.
 
 ## Paso 4: webhooks (necesitan la URL pública)
 

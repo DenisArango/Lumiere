@@ -31,6 +31,7 @@
 * [Usuarios, puntos y Stripe real](docs/backend/11-usuarios-puntos-y-stripe.md)
 * [Webhooks, 3D Secure, PayPal y auditoría](docs/backend/12-webhooks-3ds-paypal-y-auditoria.md)
 * [Despliegue en Render](docs/09-despliegue-render.md)
+* [Guía de la demostración al cliente](docs/10-guia-demo-cliente.md)
 
 ## Frontend
 

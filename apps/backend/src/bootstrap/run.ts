@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { passwordSchema } from "@/modules/auth/auth.schema";
 import { seedReferenceData } from "@/bootstrap/reference-data";
+import { seedDemoData } from "@/bootstrap/demo-data";
 
 /**
  * Se ejecuta en cada despliegue, DESPUES de las migraciones y ANTES de arrancar el servidor
@@ -19,6 +20,12 @@ import { seedReferenceData } from "@/bootstrap/reference-data";
 async function main(): Promise<void> {
   await seedReferenceData(prisma);
   logger.info("Datos de referencia listos");
+
+  // Datos de demostracion completos (cines, peliculas, funciones, compras, resenas, cuentas por rol). Solo si se pide.
+  if (process.env.SEED_DEMO_DATA === "true") {
+    await seedDemoData(prisma);
+    logger.info("Datos de demostración listos (cuentas demo con contraseña conocida: desactiva SEED_DEMO_DATA fuera de demos)");
+  }
 
   const existing = await prisma.user.count({ where: { role: "SUPER_ADMIN" } });
   if (existing > 0) {
