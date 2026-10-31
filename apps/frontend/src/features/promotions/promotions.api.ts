@@ -10,3 +10,18 @@ export async function createPromotion(input: CreatePromotionInput): Promise<Prom
   const { data } = await apiClient.post<{ promotion: Promotion }>("/promotions", input);
   return data.promotion;
 }
+
+export async function validatePromotion(
+  code: string,
+  showtimeId: string,
+): Promise<Promotion> {
+  const { data } = await apiClient.post<{ promotion: Promotion }>(
+    "/promotions/validate",
+    {
+      code,
+      showtimeId,
+    },
+  );
+
+  return data.promotion;
+}
